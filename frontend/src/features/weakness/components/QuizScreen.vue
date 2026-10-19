@@ -12,6 +12,7 @@ const props = defineProps({
   level: { type: String, required: true }, // e.g. 's3'
   stream: { type: String, default: null }, // e.g. 'g3'
   subject: { type: Object, required: true }, // from HomeScreen, has displayName and option
+  focusTopic: { type: String, default: null }, // set by "Practice" buttons: quiz on one topic only
 });
 
 const emit = defineEmits(['submit', 'quit']);
@@ -41,7 +42,7 @@ async function loadQuestions() {
 
   if (bank) {
     // A new random 10 from the bank each time (see buildQuiz.js).
-    questions.value = buildQuiz(bank);
+    questions.value = buildQuiz(bank, props.focusTopic);
     source.value = 'mock';
   } else {
     // No mock bank for this subject yet, so ask the AI to write one.
@@ -49,6 +50,7 @@ async function loadQuestions() {
       levelName,
       streamName,
       subjectName: props.subject.displayName,
+      focusTopic: props.focusTopic,
     });
     if (!generated) {
       status.value = 'error';
@@ -153,7 +155,10 @@ function quit() {
       <div>
         <button class="link" @click="quit">← Exit quiz</button>
         <p class="subject">{{ subject.displayName }}</p>
-        <p class="meta">{{ levelName }}<span v-if="streamName"> · {{ streamName }}</span></p>
+        <p class="meta">
+          {{ levelName }}<span v-if="streamName"> · {{ streamName }}</span>
+          <span v-if="focusTopic"> · Topic practice: {{ focusTopic }}</span>
+        </p>
       </div>
       <p v-if="status === 'ready'" class="counter">
         Question {{ current + 1 }} of {{ questions.length }}

@@ -4,19 +4,23 @@
 import { computed, ref, watch } from 'vue';
 import {
   STAGES,
-  MOCK_PROGRESS,
   getSubjectsForLevel,
   getStreamsForLevel,
   getSubjectOptions,
   findLevel,
   isLowerPrimary,
-  getStrength,
 } from '../data/subjects.js';
+import { getSubjectProgress } from '../progress.js';
 
 // The parent page owns these values (v-model), so they are remembered
 // when the student comes back to this screen.
 const level = defineModel('level');
 const stream = defineModel('stream');
+
+// Quizzes finished in this session, so the cards show the latest results.
+const props = defineProps({
+  history: { type: Array, default: () => [] },
+});
 
 // Messages sent up to WeaknessPage.vue.
 const emit = defineEmits(['start', 'view-progress']);
@@ -24,11 +28,11 @@ const emit = defineEmits(['start', 'view-progress']);
 // Streams for the chosen level (P5–P6: Standard/Foundation, Secondary: G1–G3).
 const streams = computed(() => getStreamsForLevel(level.value));
 
-// Adds the mock progress and strength label to each subject.
+// Adds the progress (mock + this session's quizzes) and strength label to each subject.
 function withProgress(subject) {
-  const percent = MOCK_PROGRESS[subject.id] ?? null;
+  const { percent, strength } = getSubjectProgress(level.value, subject.id, props.history);
   const hasOptions = getSubjectOptions(subject.id, stream.value) !== null;
-  return { ...subject, percent, strength: getStrength(percent), hasOptions };
+  return { ...subject, percent, strength, hasOptions };
 }
 
 // ---------- Sub-subject choice ----------

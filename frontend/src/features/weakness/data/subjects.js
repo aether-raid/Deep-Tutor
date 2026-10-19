@@ -185,21 +185,7 @@ const SUBJECT_LISTS = {
   },
 };
 
-// A pretend student's past results per subject (percent).
-// Subjects not listed here have not been tried yet.
-export const MOCK_PROGRESS = {
-  english: 60,
-  mt: 52,
-  math: 28,
-  science: 45,
-  combinedScience: 41,
-  physics: 45,
-  chemistry: 35,
-  biology: 78,
-  geography: 72,
-  history: 66,
-  combinedHumanities: 63,
-};
+// (The pretend student's past results live in data/mockProgress.js.)
 
 // ---------- Small helper functions ----------
 

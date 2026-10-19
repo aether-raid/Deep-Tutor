@@ -5,22 +5,28 @@ import { askLLM } from '../../shared/llm.js';
 // Asks the AI for 10 MCQs when there is no mock bank for a subject.
 // Returns an array of questions, or null if the AI is unavailable or the reply is unusable.
 // Kept short on purpose: askLLM only allows a short reply, so we don't ask for explanations here.
-export async function generateQuestions({ levelName, streamName, subjectName }) {
+// If focusTopic is given, it asks for 5 questions on that one topic instead.
+export async function generateQuestions({ levelName, streamName, subjectName, focusTopic = null }) {
   const systemPrompt =
     'You write multiple-choice quiz questions for Singapore students, following the MOE syllabus. ' +
     'Reply with JSON only. No extra text.';
 
+  const count = focusTopic ? 5 : 10;
+  const coverage = focusTopic
+    ? `All questions must be on the topic "${focusTopic}". `
+    : 'Cover 3 or 4 different topics, at least 2 questions per topic. ';
+
   const userPrompt =
-    `Write 10 multiple-choice questions for ${levelName}` +
+    `Write ${count} multiple-choice questions for ${levelName}` +
     (streamName ? ` (${streamName})` : '') +
-    ` ${subjectName}. Cover 3 or 4 different topics, at least 2 questions per topic. ` +
+    ` ${subjectName}. ${coverage}` +
     'Mix "understanding" questions (knowing the idea) and "application" questions (using it). ' +
     'Keep each question under 30 words. Reply as a JSON array like: ' +
     '[{"topic":"Fractions","skill":"understanding","question":"...","options":["...","...","...","..."],"answer":0}] ' +
     'where "answer" is the index (0-3) of the correct option.';
 
   const reply = await safeAsk(userPrompt, systemPrompt);
-  return parseQuestions(reply);
+  return parseQuestions(reply, count);
 }
 
 // Calls askLLM but never throws, so the page can always fall back gracefully.
@@ -188,7 +194,7 @@ function reviseIdeas(diagnosisKey, type, topicName) {
 // ---------------------------------------------------------------------------
 
 // Pulls the JSON array out of the AI reply and checks every question is usable.
-function parseQuestions(text) {
+function parseQuestions(text, count) {
   const start = text.indexOf('[');
   const end = text.lastIndexOf(']');
   if (start === -1 || end === -1) return null;
@@ -213,9 +219,9 @@ function parseQuestions(text) {
     : [];
 
   // Need a full quiz. If the reply was cut off, treat it as a failure.
-  if (valid.length < 10) return null;
+  if (valid.length < count) return null;
 
-  return valid.slice(0, 10).map((q) => ({
+  return valid.slice(0, count).map((q) => ({
     topic: q.topic || 'General',
     skill: q.skill === 'application' ? 'application' : 'understanding',
     question: q.question,

@@ -31,7 +31,15 @@ export function shuffleOptions(question) {
 }
 
 // Makes a new 10-question quiz from a question bank.
-export function buildQuiz(bank) {
+// If focusTopic is given (from the "Practice" buttons), it makes a short quiz
+// using every question on that one topic instead.
+export function buildQuiz(bank, focusTopic = null) {
+  if (focusTopic) {
+    const topicQuestions = bank.questions.filter((q) => q.topic === focusTopic);
+    if (topicQuestions.length > 0) return shuffle(topicQuestions).map(shuffleOptions);
+    // Topic not in this bank: fall through to a normal mixed quiz.
+  }
+
   const seen = lastSeen[bank.id] ?? new Set();
 
   // Put the questions into one pile per topic.

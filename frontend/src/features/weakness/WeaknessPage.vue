@@ -6,6 +6,9 @@ import { ref } from 'vue';
 import HomeScreen from './components/HomeScreen.vue';
 import QuizScreen from './components/QuizScreen.vue';
 import ResultsScreen from './components/ResultsScreen.vue';
+import OverallScreen from './components/OverallScreen.vue';
+import { analyseQuiz } from './analysis.js';
+import { getSubjectOptions } from './data/subjects.js';
 
 // Which screen is showing right now: 'home' | 'quiz' | 'results' | 'overall'
 const screen = ref('home');
@@ -22,15 +25,58 @@ const quizResult = ref(null);
 // which picks a new random set of questions.
 const quizKey = ref(0);
 
-function startQuiz(subject) {
+// Set when a "Practice" button asks for a quiz on one topic only.
+const focusTopic = ref(null);
+
+// Quizzes finished in this session (kept in memory only, nothing is saved).
+// The Home and Overall screens use this to show the latest results.
+const history = ref([]);
+
+function startQuiz(subject, topic = null) {
   selectedSubject.value = subject;
+  focusTopic.value = topic;
   quizKey.value += 1;
   screen.value = 'quiz';
 }
 
 function finishQuiz(result) {
   quizResult.value = result;
+
+  // Save a short summary of each topic for the progress screens.
+  const analysis = analyseQuiz(result);
+  history.value.push({
+    level: selectedLevel.value,
+    subject: selectedSubject.value,
+    topics: analysis.topics.map((t) => ({
+      name: t.name,
+      percent: t.percent,
+      correct: t.correct,
+      total: t.total,
+      diagnosis: t.diagnosis.label,
+    })),
+  });
+
   screen.value = 'results';
+}
+
+// "Practice" buttons on the Overall screen.
+function practice(subject, topic) {
+  // Reuse the sub-subject (e.g. Chinese, or Physics + Chemistry) from an earlier quiz.
+  const earlier = [...history.value]
+    .reverse()
+    .find((h) => h.level === selectedLevel.value && h.subject.id === subject.id);
+  if (earlier) {
+    startQuiz(earlier.subject, topic);
+    return;
+  }
+
+  // Subjects that need a sub-subject choice: send the student home to choose it.
+  if (getSubjectOptions(subject.id, selectedStream.value)) {
+    goTo('home');
+    return;
+  }
+
+  startQuiz({ ...subject, option: null, displayName: subject.name }, topic);
 }
 
 function retake() {
@@ -49,6 +95,7 @@ function goTo(name) {
       v-if="screen === 'home'"
       v-model:level="selectedLevel"
       v-model:stream="selectedStream"
+      :history="history"
       @start="startQuiz"
       @view-progress="goTo('overall')"
     />
@@ -59,6 +106,7 @@ function goTo(name) {
       :level="selectedLevel"
       :stream="selectedStream"
       :subject="selectedSubject"
+      :focus-topic="focusTopic"
       @submit="finishQuiz"
       @quit="goTo('home')"
     />
@@ -74,11 +122,14 @@ function goTo(name) {
       @view-progress="goTo('overall')"
     />
 
-    <!-- Placeholder: the overall progress screen is built in step 5 -->
-    <div v-else-if="screen === 'overall'" class="placeholder">
-      <p class="muted">Overall progress will appear here in step 5.</p>
-      <button class="btn" @click="goTo('home')">← Back to home</button>
-    </div>
+    <OverallScreen
+      v-else-if="screen === 'overall'"
+      :level="selectedLevel"
+      :stream="selectedStream"
+      :history="history"
+      @practice="practice"
+      @home="goTo('home')"
+    />
   </section>
 </template>
 
@@ -86,34 +137,5 @@ function goTo(name) {
 .page {
   font-family: var(--font-body);
   color: var(--color-text);
-}
-
-.placeholder {
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
-}
-
-.muted {
-  color: var(--color-muted);
-}
-
-.btn {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: var(--color-primary-soft);
 }
 </style>
