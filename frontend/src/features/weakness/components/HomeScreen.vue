@@ -1,7 +1,7 @@
 <script setup>
 // Home screen: the student picks a level (and stream for secondary),
 // then picks a subject to start a 10-question quiz.
-//hi
+import { computed } from 'vue';
 import {
   STAGES,
   STREAMS,
