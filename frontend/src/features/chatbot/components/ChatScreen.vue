@@ -35,7 +35,15 @@
         :class="message.role === 'user' ? 'from-user' : 'from-tutor'"
       >
         <span class="avatar">{{ message.role === 'user' ? '👤' : '🧠' }}</span>
-        <p class="bubble">{{ message.content }}</p>
+        <!-- Tutor answers are written in Markdown, so we turn them into HTML.
+             renderMarkdown() cleans the HTML with DOMPurify, so it is OK to use v-html. -->
+        <div
+          v-if="message.role === 'assistant'"
+          class="bubble markdown"
+          v-html="renderMarkdown(message.content)"
+        ></div>
+        <!-- Student messages are shown exactly as typed -->
+        <p v-else class="bubble">{{ message.content }}</p>
       </div>
 
       <!-- Shown while we wait for the AI to answer -->
@@ -73,6 +81,8 @@
 import { ref, nextTick, onMounted } from 'vue';
 import { askLLM } from '../../../shared/llm.js';
 import { loadChat, saveChat } from '../chatStorage.js';
+import { marked } from 'marked'; // turns Markdown into HTML
+import DOMPurify from 'dompurify'; // removes anything unsafe from that HTML
 
 // The chosen subject comes from the parent page.
 const props = defineProps({
@@ -110,8 +120,19 @@ function tutorPrompt() {
   return (
     `You are a friendly ${props.subject.name} tutor for secondary school students. ` +
     `Explain things simply and step by step. Keep answers short unless asked for detail. ` +
-    `If the question is not about ${props.subject.name}, gently guide the student back to the subject.`
+    `If the question is not about ${props.subject.name}, gently guide the student back to the subject. ` +
+    // Our chat can show Markdown, but not maths formulas (LaTeX).
+    `You may use Markdown: headings, **bold**, *italic*, lists, tables and code blocks. ` +
+    `Do not use LaTeX; write maths in plain text, e.g. x^2 + 3x = 0 or sqrt(2).`
   );
+}
+
+// Turn the tutor's Markdown answer into safe HTML for v-html.
+// marked: Markdown -> HTML ("breaks: true" keeps single line breaks).
+// DOMPurify: strips out anything dangerous, like <script> tags.
+function renderMarkdown(text) {
+  const html = marked.parse(text, { breaks: true });
+  return DOMPurify.sanitize(html);
 }
 
 // Make the text box taller as the student types more lines.
@@ -285,6 +306,112 @@ async function sendMessage() {
   line-height: 1.5;
   white-space: pre-wrap; /* keep line breaks from the answer */
   overflow-wrap: anywhere; /* break very long words onto the next line */
+}
+
+/* ----- Markdown inside tutor bubbles -----
+   The HTML comes from v-html, so we need :deep() for scoped styles to reach it. */
+.markdown {
+  white-space: normal; /* the HTML already has its own line breaks */
+}
+
+/* No extra space above the first item or below the last one */
+.markdown > :deep(:first-child) {
+  margin-top: 0;
+}
+
+.markdown > :deep(:last-child) {
+  margin-bottom: 0;
+}
+
+.markdown :deep(p),
+.markdown :deep(ul),
+.markdown :deep(ol),
+.markdown :deep(pre),
+.markdown :deep(blockquote) {
+  margin: 0 0 var(--space-3);
+}
+
+.markdown :deep(h1),
+.markdown :deep(h2),
+.markdown :deep(h3),
+.markdown :deep(h4),
+.markdown :deep(h5),
+.markdown :deep(h6) {
+  font-family: var(--font-heading);
+  font-size: 1.05rem; /* keep headings small inside a chat bubble */
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.markdown :deep(h1),
+.markdown :deep(h2) {
+  font-size: 1.15rem;
+}
+
+/* Tables: scroll sideways if they are too wide for the bubble */
+.markdown :deep(table) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0 0 var(--space-3);
+}
+
+.markdown :deep(th),
+.markdown :deep(td) {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.markdown :deep(th) {
+  background: var(--color-primary-soft);
+}
+
+.markdown :deep(ul),
+.markdown :deep(ol) {
+  padding-left: var(--space-5);
+}
+
+.markdown :deep(li) {
+  margin-bottom: var(--space-1);
+}
+
+.markdown :deep(code) {
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  background: var(--color-primary-soft);
+  font-size: 0.9em;
+}
+
+/* Code blocks scroll sideways instead of stretching the bubble */
+.markdown :deep(pre) {
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-primary-soft);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.markdown :deep(pre code) {
+  padding: 0;
+  background: none;
+}
+
+.markdown :deep(blockquote) {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-border);
+  color: var(--color-muted);
+}
+
+.markdown :deep(hr) {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-3) 0;
+}
+
+.markdown :deep(a) {
+  color: var(--color-primary);
+  text-decoration: underline;
 }
 
 .thinking {
