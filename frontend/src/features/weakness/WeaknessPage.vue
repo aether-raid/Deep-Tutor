@@ -4,18 +4,37 @@
 //   home -> quiz -> results -> home      and      home <-> overall
 import { ref } from 'vue';
 import HomeScreen from './components/HomeScreen.vue';
-import { findLevel } from './data/subjects.js';
+import QuizScreen from './components/QuizScreen.vue';
+import ResultsScreen from './components/ResultsScreen.vue';
 
 // Which screen is showing right now: 'home' | 'quiz' | 'results' | 'overall'
 const screen = ref('home');
 
 // What the student picked on the home screen.
 const selectedLevel = ref(null); // e.g. 'p3' or 's3'
-const selectedStream = ref(null); // e.g. 'g3' (secondary only)
-const selectedSubject = ref(null); // a subject object from data/subjects.js
+const selectedStream = ref(null); // e.g. 'g3' or 'standard'
+const selectedSubject = ref(null); // subject object + chosen option + displayName
+
+// What the quiz sends back when it is submitted (questions, answers, time).
+const quizResult = ref(null);
+
+// Changing this number makes Vue build a brand-new QuizScreen,
+// which picks a new random set of questions.
+const quizKey = ref(0);
 
 function startQuiz(subject) {
   selectedSubject.value = subject;
+  quizKey.value += 1;
+  screen.value = 'quiz';
+}
+
+function finishQuiz(result) {
+  quizResult.value = result;
+  screen.value = 'results';
+}
+
+function retake() {
+  quizKey.value += 1;
   screen.value = 'quiz';
 }
 
@@ -34,15 +53,26 @@ function goTo(name) {
       @view-progress="goTo('overall')"
     />
 
-    <!-- Placeholder: the quiz screen is built in step 2 -->
-    <div v-else-if="screen === 'quiz'" class="placeholder">
-      <p class="muted">
-        Quiz for {{ selectedSubject?.name }} ({{ findLevel(selectedLevel)?.name }}<span
-          v-if="selectedStream"
-        >, {{ selectedStream.toUpperCase() }}</span>) will appear here in step 2.
-      </p>
-      <button class="btn" @click="goTo('home')">← Back to home</button>
-    </div>
+    <QuizScreen
+      v-else-if="screen === 'quiz'"
+      :key="quizKey"
+      :level="selectedLevel"
+      :stream="selectedStream"
+      :subject="selectedSubject"
+      @submit="finishQuiz"
+      @quit="goTo('home')"
+    />
+
+    <ResultsScreen
+      v-else-if="screen === 'results'"
+      :level="selectedLevel"
+      :stream="selectedStream"
+      :subject="selectedSubject"
+      :result="quizResult"
+      @retake="retake"
+      @home="goTo('home')"
+      @view-progress="goTo('overall')"
+    />
 
     <!-- Placeholder: the overall progress screen is built in step 5 -->
     <div v-else-if="screen === 'overall'" class="placeholder">

@@ -1,14 +1,15 @@
 <script setup>
 // Home screen: the student picks a level (and stream for secondary),
 // then picks a subject to start a 10-question quiz.
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import {
   STAGES,
-  STREAMS,
   MOCK_PROGRESS,
   getSubjectsForLevel,
+  getStreamsForLevel,
+  getSubjectOptions,
   findLevel,
-  isSecondary,
+  isLowerPrimary,
   getStrength,
 } from '../data/subjects.js';
 
@@ -20,13 +21,57 @@ const stream = defineModel('stream');
 // Messages sent up to WeaknessPage.vue.
 const emit = defineEmits(['start', 'view-progress']);
 
-// Subjects for the chosen level, with the mock progress attached.
-const subjects = computed(() =>
-  getSubjectsForLevel(level.value).map((subject) => {
-    const percent = MOCK_PROGRESS[subject.id] ?? null;
-    return { ...subject, percent, strength: getStrength(percent) };
-  })
-);
+// Streams for the chosen level (P5–P6: Standard/Foundation, Secondary: G1–G3).
+const streams = computed(() => getStreamsForLevel(level.value));
+
+// Adds the mock progress and strength label to each subject.
+function withProgress(subject) {
+  const percent = MOCK_PROGRESS[subject.id] ?? null;
+  const hasOptions = getSubjectOptions(subject.id, stream.value) !== null;
+  return { ...subject, percent, strength: getStrength(percent), hasOptions };
+}
+
+// ---------- Sub-subject choice ----------
+// Mother Tongue, Combined Science and Humanities need one more choice
+// (e.g. Chinese, or Physics + Chemistry) before the quiz can start.
+const pending = ref(null); // { subject, prompt, options } while choosing
+const pendingOptionId = ref(null); // the option the student clicked
+
+function pickSubject(subject) {
+  const choice = getSubjectOptions(subject.id, stream.value);
+  if (!choice) {
+    // Nothing more to choose: start straight away.
+    emit('start', { ...subject, option: null, displayName: subject.name });
+    return;
+  }
+  pending.value = { subject, ...choice };
+  pendingOptionId.value = null;
+}
+
+function confirmOption() {
+  const { subject, options } = pending.value;
+  const option = options.find((o) => o.id === pendingOptionId.value);
+  emit('start', { ...subject, option, displayName: `${subject.name} (${option.name})` });
+}
+
+function cancelOption() {
+  pending.value = null;
+}
+
+// If the level or stream changes, the open choice may no longer be valid.
+watch([level, stream], cancelOption);
+
+// Subjects for the chosen level + stream, split into two groups.
+const groups = computed(() => {
+  const { core, other } = getSubjectsForLevel(level.value, stream.value);
+  return [
+    { title: 'Core subjects', subjects: core.map(withProgress) },
+    { title: 'Electives and optional subjects', subjects: other.map(withProgress) },
+  ].filter((group) => group.subjects.length > 0);
+});
+
+// All subjects in one list (used for the ring and the tip).
+const subjects = computed(() => groups.value.flatMap((group) => group.subjects));
 
 // Average of the subjects the student has tried (for the ring).
 const overall = computed(() => {
@@ -47,8 +92,11 @@ const levelName = computed(() => findLevel(level.value)?.name ?? '');
 
 function selectLevel(id) {
   level.value = id;
-  // Secondary students also need a stream; default to G3. Primary has none.
-  stream.value = isSecondary(id) ? stream.value ?? 'g3' : null;
+  // Keep the current stream if this level has it, otherwise pick the first one
+  // (Standard or G3). Levels without streams (P1–P4) get null.
+  const options = getStreamsForLevel(id);
+  const stillValid = options.some((s) => s.id === stream.value);
+  stream.value = stillValid ? stream.value : options[0]?.id ?? null;
 }
 </script>
 
@@ -88,12 +136,12 @@ function selectLevel(id) {
         </div>
       </div>
 
-      <!-- Only secondary students choose a stream (subject level) -->
-      <div v-if="isSecondary(level)" class="row">
+      <!-- Only P5–P6 and secondary students choose a stream -->
+      <div v-if="streams.length > 0" class="row">
         <span class="row-label">Stream</span>
         <div class="pills">
           <button
-            v-for="s in STREAMS"
+            v-for="s in streams"
             :key="s.id"
             class="pill"
             :class="{ active: stream === s.id }"
@@ -104,6 +152,11 @@ function selectLevel(id) {
           </button>
         </div>
       </div>
+
+      <!-- P1–P2 have no tests or grades, so make it clear this is just practice -->
+      <p v-if="isLowerPrimary(level)" class="note">
+        P1 and P2 have no tests, exams or grades. This quiz is just for practice.
+      </p>
     </section>
 
     <!-- Step 2: subject -->
@@ -129,29 +182,64 @@ function selectLevel(id) {
           </p>
         </div>
 
-        <!-- One card per subject -->
-        <div class="subject-grid">
-          <button
-            v-for="subject in subjects"
-            :key="subject.id"
-            class="subject-card"
-            @click="emit('start', subject)"
-          >
-            <div class="subject-top">
-              <span class="icon">{{ subject.icon }}</span>
-              <span class="badge" :class="'badge-' + subject.strength.key">
-                {{ subject.strength.label }}
-              </span>
+        <!-- Subject cards, grouped into core and other subjects -->
+        <div class="groups">
+          <div v-for="group in groups" :key="group.title" class="group">
+            <h3 class="group-title">{{ group.title }}</h3>
+            <div class="subject-grid">
+              <button
+                v-for="subject in group.subjects"
+                :key="subject.id"
+                class="subject-card"
+                :class="{ selected: pending?.subject.id === subject.id }"
+                @click="pickSubject(subject)"
+              >
+                <div class="subject-top">
+                  <span class="icon">{{ subject.icon }}</span>
+                  <span class="badge" :class="'badge-' + subject.strength.key">
+                    {{ subject.strength.label }}
+                  </span>
+                </div>
+                <span class="subject-name">{{ subject.name }}</span>
+                <span v-if="subject.note" class="subject-note">{{ subject.note }}</span>
+                <span class="subject-percent">
+                  {{ subject.percent === null ? '–' : subject.percent + '%' }}
+                </span>
+                <div class="bar">
+                  <div class="bar-fill" :style="{ width: (subject.percent ?? 0) + '%' }"></div>
+                </div>
+                <span class="cta">{{ subject.hasOptions ? 'Choose and start →' : 'Start quiz →' }}</span>
+              </button>
             </div>
-            <span class="subject-name">{{ subject.name }}</span>
-            <span class="subject-percent">
-              {{ subject.percent === null ? '–' : subject.percent + '%' }}
-            </span>
-            <div class="bar">
-              <div class="bar-fill" :style="{ width: (subject.percent ?? 0) + '%' }"></div>
+
+            <!-- Sub-subject chooser: appears under the group the clicked card is in -->
+            <div
+              v-if="pending && group.subjects.some((s) => s.id === pending.subject.id)"
+              class="chooser"
+            >
+              <p class="chooser-title">
+                <strong>{{ pending.subject.name }}</strong>: {{ pending.prompt }}
+              </p>
+              <div class="pills">
+                <button
+                  v-for="option in pending.options"
+                  :key="option.id"
+                  class="pill"
+                  :class="{ active: pendingOptionId === option.id }"
+                  :aria-pressed="pendingOptionId === option.id"
+                  @click="pendingOptionId = option.id"
+                >
+                  {{ option.name }}
+                </button>
+              </div>
+              <div class="chooser-actions">
+                <button class="btn btn-ghost" @click="cancelOption">Cancel</button>
+                <button class="btn btn-primary" :disabled="!pendingOptionId" @click="confirmOption">
+                  Start quiz →
+                </button>
+              </div>
             </div>
-            <span class="cta">Start quiz →</span>
-          </button>
+          </div>
         </div>
       </div>
     </section>
@@ -320,9 +408,35 @@ function selectLevel(id) {
   color: var(--color-muted);
 }
 
-.subject-grid {
+.note {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+}
+
+.groups {
   flex: 1;
   min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.group-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin-bottom: var(--space-2);
+}
+
+.subject-note {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.subject-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: var(--space-3);
@@ -342,8 +456,35 @@ function selectLevel(id) {
   cursor: pointer;
 }
 
-.subject-card:hover {
+.subject-card:hover,
+.subject-card.selected {
   border-color: var(--color-primary);
+}
+
+.subject-card.selected {
+  background: var(--color-primary-soft);
+}
+
+/* Box for choosing a sub-subject (language, science pair, elective) */
+.chooser {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.chooser-title {
+  font-size: 0.9rem;
+}
+
+.chooser-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
 }
 
 .subject-top {
@@ -443,6 +584,27 @@ function selectLevel(id) {
 
 .btn-outline:hover {
   background: var(--color-primary-soft);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  color: var(--color-text);
 }
 
 @media (max-width: 600px) {
