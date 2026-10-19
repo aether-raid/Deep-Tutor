@@ -6,4 +6,3 @@
 4. Frontend only; call the LLM through `shared/llm.js`. No backend.
 5. Do not install new packages.
 6. Use mock data in a `data/` file inside your feature folder. No real student data.
-7. Keep code simple and commented, since 15-year-old beginners will read it.
