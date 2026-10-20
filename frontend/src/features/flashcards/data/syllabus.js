@@ -54,7 +54,7 @@ const HL_EXTRA = { note: 'Core content for all students, plus extra HL-only cont
 // =====================================================================
 
 const oMath = {
-  id: 'o-math', name: 'Core Mathematics', short: 'EM', syllabus: 'O Level Mathematics 4052 (2026)',
+  id: 'o-math', name: 'Elementary Mathematics', short: 'EM', syllabus: 'O Level Mathematics 4052 (2026)',
   topics: [
     { code: 'N', name: 'Number and Algebra', subtopics: subs([
       ['N1', 'Numbers and their operations', { deck: 'o-math-n1' }], ['N2', 'Ratio and proportion', { deck: 'o-math-n2' }], ['N3', 'Percentage', { deck: 'o-math-n3' }],
