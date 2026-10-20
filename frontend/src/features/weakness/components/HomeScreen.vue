@@ -30,7 +30,7 @@ const streams = computed(() => getStreamsForLevel(level.value));
 
 // Adds the progress (mock + this session's quizzes) and strength label to each subject.
 function withProgress(subject) {
-  const { percent, strength } = getSubjectProgress(level.value, subject.id, props.history);
+  const { percent, strength } = getSubjectProgress(level.value, stream.value, subject.id, props.history);
   const hasOptions = getSubjectOptions(subject.id, stream.value) !== null;
   return { ...subject, percent, strength, hasOptions };
 }

@@ -20,9 +20,10 @@ export async function generateQuestions({ levelName, streamName, subjectName, fo
     `Write ${count} multiple-choice questions for ${levelName}` +
     (streamName ? ` (${streamName})` : '') +
     ` ${subjectName}. ${coverage}` +
-    'Mix "understanding" questions (knowing the idea) and "application" questions (using it). ' +
+    'Mix "understanding" questions (knowing the idea) and "application" questions (using it), ' +
+    'and mix "easy", "medium" and "hard" questions. ' +
     'Keep each question under 30 words. Reply as a JSON array like: ' +
-    '[{"topic":"Fractions","skill":"understanding","question":"...","options":["...","...","...","..."],"answer":0}] ' +
+    '[{"topic":"Fractions","skill":"understanding","difficulty":"easy","question":"...","options":["...","...","...","..."],"answer":0}] ' +
     'where "answer" is the index (0-3) of the correct option.';
 
   const reply = await safeAsk(userPrompt, systemPrompt);
@@ -224,6 +225,7 @@ function parseQuestions(text, count) {
   return valid.slice(0, count).map((q) => ({
     topic: q.topic || 'General',
     skill: q.skill === 'application' ? 'application' : 'understanding',
+    difficulty: ['easy', 'medium', 'hard'].includes(q.difficulty) ? q.difficulty : null,
     question: q.question,
     options: q.options.map(String),
     answer: q.answer,

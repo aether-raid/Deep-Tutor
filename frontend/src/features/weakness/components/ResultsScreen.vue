@@ -2,7 +2,7 @@
 // Results screen: score, score per topic, weakest topics highlighted,
 // and a detailed look at every question in the chosen topic.
 import { ref, computed } from 'vue';
-import { analyseQuiz, CONFIDENCE_LABELS, SKILL_INFO, TOPIC_STATUS, formatDuration } from '../analysis.js';
+import { analyseQuiz, CONFIDENCE_LABELS, DIFFICULTY_LABELS, SKILL_INFO, TOPIC_STATUS, formatDuration } from '../analysis.js';
 import { findLevel, findStream } from '../data/subjects.js';
 import AiSuggestions from './AiSuggestions.vue';
 
@@ -193,6 +193,7 @@ function answerText(item, index) {
             <span class="muted small">
               {{ item.seconds }}s · {{ CONFIDENCE_LABELS[item.confidence] ?? 'No confidence given' }}
               · {{ SKILL_INFO[item.skill].label }}
+              <template v-if="item.difficulty">· {{ DIFFICULTY_LABELS[item.difficulty] }}</template>
             </span>
           </div>
 

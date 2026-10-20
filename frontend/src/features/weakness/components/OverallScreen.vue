@@ -30,7 +30,7 @@ const subjects = computed(() => {
   const { core, other } = getSubjectsForLevel(props.level, props.stream);
   return [...core, ...other].map((subject) => ({
     ...subject,
-    ...getSubjectProgress(props.level, subject.id, props.history),
+    ...getSubjectProgress(props.level, props.stream, subject.id, props.history),
   }));
 });
 
@@ -49,9 +49,14 @@ function weakestSubjectId() {
 const selectedId = ref(weakestSubjectId());
 const selected = computed(() => subjects.value.find((s) => s.id === selectedId.value) ?? null);
 
-// Topic groups for the two summary boxes.
-const needsAttention = computed(() => selected.value?.topics.filter((t) => t.percent < 50) ?? []);
-const goingWell = computed(() => selected.value?.topics.filter((t) => t.percent >= 70) ?? []);
+// Topic groups for the two summary boxes (topics not tried yet have percent null).
+const needsAttention = computed(
+  () => selected.value?.topics.filter((t) => t.percent !== null && t.percent < 50) ?? []
+);
+const goingWell = computed(
+  () => selected.value?.topics.filter((t) => t.percent !== null && t.percent >= 70) ?? []
+);
+const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.percent === null).length ?? 0);
 </script>
 
 <template>
@@ -147,9 +152,18 @@ const goingWell = computed(() => selected.value?.topics.filter((t) => t.percent 
             </div>
           </div>
 
-          <!-- One row per topic, weakest first -->
+          <!-- Every topic in the subject: weakest first, not-tried topics at the bottom -->
+          <p class="muted small">
+            All {{ selected.topics.length }} topics, weakest first<span v-if="notTriedCount">
+              ({{ notTriedCount }} not tried yet, at the bottom)</span>.
+          </p>
           <ul class="topics">
-            <li v-for="topic in selected.topics" :key="topic.name" class="topic">
+            <li
+              v-for="topic in selected.topics"
+              :key="topic.name"
+              class="topic"
+              :class="{ untried: topic.percent === null }"
+            >
               <div class="topic-text">
                 <span class="topic-name">
                   {{ topic.name }}
@@ -157,10 +171,10 @@ const goingWell = computed(() => selected.value?.topics.filter((t) => t.percent 
                 </span>
                 <span class="topic-note">{{ topic.note }}</span>
               </div>
-              <div class="bar topic-bar" :class="{ low: topic.percent < 50 }">
-                <div class="bar-fill" :style="{ width: topic.percent + '%' }"></div>
+              <div class="bar topic-bar" :class="{ low: topic.percent !== null && topic.percent < 50 }">
+                <div class="bar-fill" :style="{ width: (topic.percent ?? 0) + '%' }"></div>
               </div>
-              <span class="topic-percent">{{ topic.percent }}%</span>
+              <span class="topic-percent">{{ topic.percent === null ? '–' : topic.percent + '%' }}</span>
               <button class="btn btn-small" @click="emit('practice', selected, topic.name)">Practice</button>
             </li>
           </ul>
@@ -442,6 +456,16 @@ const goingWell = computed(() => selected.value?.topics.filter((t) => t.percent 
   gap: var(--space-3);
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);
+}
+
+/* Topics with no score yet are dimmed and get a dashed bar */
+.topic.untried .topic-name {
+  color: var(--color-muted);
+}
+
+.topic.untried .topic-bar {
+  background: transparent;
+  border: 1px dashed var(--color-border);
 }
 
 .topic-text {

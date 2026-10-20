@@ -37,14 +37,14 @@ export const STAGES = [
 // Secondary: Full Subject-Based Banding levels G1, G2, G3.
 // P1–P4 have no stream.
 const PRIMARY_STREAMS = [
-  { id: 'standard', name: 'Standard', hint: 'most pupils' },
-  { id: 'foundation', name: 'Foundation', hint: 'set from P4 results' },
+  { id: 'standard', name: 'Standard'},
+  { id: 'foundation', name: 'Foundation' },
 ];
 
 const SECONDARY_STREAMS = [
-  { id: 'g3', name: 'G3', hint: 'was Express' },
-  { id: 'g2', name: 'G2', hint: 'was N(A)' },
-  { id: 'g1', name: 'G1', hint: 'was N(T)' },
+  { id: 'g3', name: 'G3', hint: 'Express' },
+  { id: 'g2', name: 'G2', hint: 'N(A)' },
+  { id: 'g1', name: 'G1', hint: 'N(T)' },
 ];
 
 // Every subject the page knows about.
