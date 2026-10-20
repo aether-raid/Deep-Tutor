@@ -121,15 +121,24 @@ const FEATURES = [
   border-radius: 999px; /* very large radius = fully rounded pill ends */
   color: var(--home-ink);
   text-decoration: none; /* remove the default link underline */
-  border: 2px solid transparent; /* invisible now, shown on hover */
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 /* Mouse hover: lift the pill a little and show a dark outline */
-.card:hover {
+.pill-blue:hover {
   transform: translateY(-2px);
-  border-color: var(--home-outline);
-  box-shadow: 0 4px 0 var(--home-outline);
+  border-color: #3e66bf;
+  box-shadow: 0 3px 0 #3e66bf;
+}
+
+.pill-green:hover {
+  transform: translateY(-2px);
+  border-color: #4cb584;
+  box-shadow: 0 3px 0 #4cb584;
+}
+.pill-yellow:hover {
+  transform: translateY(-2px);
+  border-color: #bfb34a;
+  box-shadow: 0 3px 0 #bfb34a;
 }
 
 /* Keyboard users (Tab key): show a clear ring around the focused pill */
@@ -152,14 +161,20 @@ const FEATURES = [
 /* One background colour per card (set by "color" in FEATURES) */
 .pill-yellow {
   background: var(--pill-yellow);
+  border: 2px solid transparent; /* invisible now, shown on hover */
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .pill-blue {
   background: var(--pill-blue);
+  border: 2px solid transparent; /* invisible now, shown on hover */
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .pill-green {
   background: var(--pill-green);
+  border: 2px solid transparent; /* invisible now, shown on hover */
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card-left {
