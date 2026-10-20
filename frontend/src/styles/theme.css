@@ -10,6 +10,10 @@
   --color-text: #001157;
   --color-muted: #001157;
   --color-border: #e5e7eb;
+  --color-success: #16a34a;
+  --color-warning: #eab308;
+  --color-warning-strong: #f59e0b;
+  --color-danger: #dc2626;
 
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
