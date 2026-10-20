@@ -5,7 +5,12 @@ import { PROJECT_NAME, NAV_ITEMS } from '../config.js';
 <template>
   <aside class="sidebar">
     <header class="sidebar-header">
-      <h1 class="project-name">{{ PROJECT_NAME }}</h1>
+      <div class="header-container">
+        <h1 class="project-name">{{ PROJECT_NAME }}</h1>
+      <img src="../../assets/swallow.png" style="width: 15%; height: auto;" /> 
+        
+      </div>
+
     </header>
 
     <nav class="nav">
@@ -24,6 +29,12 @@ import { PROJECT_NAME, NAV_ITEMS } from '../config.js';
 </template>
 
 <style scoped>
+.header-container {
+  display: flex;         /* Activates flexbox */
+  align-items: center;   /* Vertically aligns the image and text in the middle */
+  gap: 15px;             /* Adds clean spacing between the image and the h1 */
+}
+
 .sidebar {
   position: fixed;
   top: 0;

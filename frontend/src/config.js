@@ -1,6 +1,6 @@
 // The single place to change the project name.
 // Rename the app by editing PROJECT_NAME here only.
-export const PROJECT_NAME = 'SA-SUTD STEM PROJECT';
+export const PROJECT_NAME = 'ARISTOTLE';
 
 // Nav links shown in the sidebar. Each item needs a label, a path, and an emoji icon.
 export const NAV_ITEMS = [
