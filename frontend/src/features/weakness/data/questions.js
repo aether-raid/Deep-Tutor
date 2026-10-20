@@ -3,6 +3,9 @@
 // Each question has:
 //   topic       - used to work out the score per topic
 //   skill       - 'understanding' (knowing the idea) or 'application' (using it in a problem)
+//   difficulty  - 'easy' | 'medium' | 'hard', in line with SEAB's assessment objectives:
+//                 easy = recall / routine (AO1), medium = apply in context (AO2),
+//                 hard = reason and solve multi-step problems (AO3)
 //   question    - the question text
 //   options     - exactly 4 answer choices (A–D)
 //   answer      - index of the correct option (0 = A, 1 = B, ...)
@@ -10,11 +13,39 @@
 //   whyWrong    - for each option, the likely mistake behind picking it (null for the correct one)
 //
 // Each bank says which level / stream / subject (and sub-subject option) it is for.
-// Each bank has 20 questions (5 per topic). Every quiz picks 10 of them at random
-// and shuffles the A–D order, so no two attempts look the same (see buildQuiz.js).
-// Subjects without a bank fall back to AI-generated questions (see weaknessAI.js).
+// P1–P4 have no stream, so their banks use streams: [null].
+// Each bank has at least 4 questions per topic, with easy, medium and hard in every topic.
+// Every quiz picks 10 of them at random and shuffles the A–D order, so no two attempts
+// look the same (see buildQuiz.js).
+// The banks for each stage live in data/banks/. The four banks below were the first ones;
+// extra questions for them come from the EXTRA exports of the files in data/banks/.
+// Mother Tongue subjects have no bank and fall back to AI-generated questions (see weaknessAI.js).
 
-const BANKS = [
+import * as lowerPrimary from './banks/lowerPrimary.js';
+import * as middlePrimary from './banks/middlePrimary.js';
+import * as upperPrimary from './banks/upperPrimary.js';
+import * as lowerSecondaryCore from './banks/lowerSecondaryCore.js';
+import * as lowerSecondaryMath from './banks/lowerSecondaryMath.js';
+import * as lowerSecondaryHumanities from './banks/lowerSecondaryHumanities.js';
+import * as upperSecondaryG1 from './banks/upperSecondaryG1.js';
+import * as upperSecondaryMathEnglish from './banks/upperSecondaryMathEnglish.js';
+import * as upperSecondarySciences from './banks/upperSecondarySciences.js';
+import * as upperSecondaryHumanities from './banks/upperSecondaryHumanities.js';
+
+const BANK_FILES = [
+  lowerPrimary,
+  middlePrimary,
+  upperPrimary,
+  lowerSecondaryCore,
+  lowerSecondaryMath,
+  lowerSecondaryHumanities,
+  upperSecondaryG1,
+  upperSecondaryMathEnglish,
+  upperSecondarySciences,
+  upperSecondaryHumanities,
+];
+
+const FIRST_BANKS = [
   // ---------------------------------------------------------------
   {
     id: 'p56-standard-math',
@@ -25,6 +56,7 @@ const BANKS = [
       {
         topic: 'Fractions',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which fraction is equal to 3/4?',
         options: ['6/8', '4/5', '3/8', '7/8'],
         answer: 0,
@@ -39,6 +71,7 @@ const BANKS = [
       {
         topic: 'Fractions',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Mei had 30 sweets. She gave away 2/5 of them. How many sweets did she have left?',
         options: ['12', '18', '20', '6'],
         answer: 1,
@@ -53,6 +86,7 @@ const BANKS = [
       {
         topic: 'Fractions',
         skill: 'application',
+        difficulty: 'medium',
         question: 'What is 1/2 ÷ 1/4?',
         options: ['1/8', '2', '1/2', '3/4'],
         answer: 1,
@@ -67,6 +101,7 @@ const BANKS = [
       {
         topic: 'Percentage',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Write 0.35 as a percentage.',
         options: ['3.5%', '35%', '0.35%', '350%'],
         answer: 1,
@@ -81,6 +116,7 @@ const BANKS = [
       {
         topic: 'Percentage',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A bag costs $80. It is sold at a 15% discount. What is the price after the discount?',
         options: ['$68', '$12', '$65', '$92'],
         answer: 0,
@@ -95,6 +131,7 @@ const BANKS = [
       {
         topic: 'Percentage',
         skill: 'application',
+        difficulty: 'medium',
         question: 'There are 40 pupils in a class. 24 are girls. What percentage are boys?',
         options: ['60%', '40%', '16%', '24%'],
         answer: 1,
@@ -109,6 +146,7 @@ const BANKS = [
       {
         topic: 'Ratio',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Write 12 : 18 in its simplest form.',
         options: ['2 : 3', '3 : 2', '6 : 9', '4 : 6'],
         answer: 0,
@@ -123,6 +161,7 @@ const BANKS = [
       {
         topic: 'Ratio',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Ali and Ben share $60 in the ratio 2 : 3. How much does Ben get?',
         options: ['$24', '$36', '$40', '$20'],
         answer: 1,
@@ -137,6 +176,7 @@ const BANKS = [
       {
         topic: 'Area and perimeter',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'A triangle has a base of 10 cm and a height of 6 cm. What is its area?',
         options: ['60 cm²', '30 cm²', '16 cm²', '32 cm²'],
         answer: 1,
@@ -151,6 +191,7 @@ const BANKS = [
       {
         topic: 'Area and perimeter',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'A rectangular garden is 8 m by 5 m. A square pond of side 3 m is built in it. What area of the garden is left?',
         options: ['31 m²', '37 m²', '49 m²', '26 m²'],
@@ -166,6 +207,7 @@ const BANKS = [
       {
         topic: 'Fractions',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which fraction is the largest?',
         options: ['2/3', '3/5', '5/8', '1/2'],
         answer: 0,
@@ -180,6 +222,7 @@ const BANKS = [
       {
         topic: 'Fractions',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Find 3/4 + 1/6.',
         options: ['11/12', '4/10', '4/24', '10/12'],
         answer: 0,
@@ -194,6 +237,7 @@ const BANKS = [
       {
         topic: 'Percentage',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which of these is equal to 40%?',
         options: ['2/5', '4/100', '1/40', '0.04'],
         answer: 0,
@@ -208,6 +252,7 @@ const BANKS = [
       {
         topic: 'Percentage',
         skill: 'application',
+        difficulty: 'medium',
         question: 'The price of a book went up from $50 to $60. What is the percentage increase?',
         options: ['20%', '10%', '16.7%', '120%'],
         answer: 0,
@@ -222,6 +267,7 @@ const BANKS = [
       {
         topic: 'Ratio',
         skill: 'understanding',
+        difficulty: 'medium',
         question: 'A box has 4 red beads and 6 blue beads. What is the ratio of red beads to the total number of beads?',
         options: ['2 : 5', '2 : 3', '3 : 5', '5 : 2'],
         answer: 0,
@@ -236,6 +282,7 @@ const BANKS = [
       {
         topic: 'Ratio',
         skill: 'application',
+        difficulty: 'medium',
         question: 'The ratio of boys to girls in a hall is 3 : 5. There are 40 girls. How many boys are there?',
         options: ['24', '64', '15', '8'],
         answer: 0,
@@ -250,6 +297,7 @@ const BANKS = [
       {
         topic: 'Ratio',
         skill: 'application',
+        difficulty: 'hard',
         question: 'A : B = 2 : 3 and B : C = 3 : 4. Find A : C.',
         options: ['1 : 2', '2 : 3', '3 : 4', '5 : 7'],
         answer: 0,
@@ -264,6 +312,7 @@ const BANKS = [
       {
         topic: 'Area and perimeter',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'A square has sides of 6 cm. What is its perimeter?',
         options: ['24 cm', '36 cm', '12 cm', '6 cm'],
         answer: 0,
@@ -278,6 +327,7 @@ const BANKS = [
       {
         topic: 'Area and perimeter',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A square has an area of 49 cm². What is its perimeter?',
         options: ['28 cm', '7 cm', '196 cm', '14 cm'],
         answer: 0,
@@ -292,6 +342,7 @@ const BANKS = [
       {
         topic: 'Area and perimeter',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A circle has a radius of 7 cm. Find its area. (Take π = 22/7)',
         options: ['154 cm²', '44 cm²', '616 cm²', '22 cm²'],
         answer: 0,
@@ -316,6 +367,7 @@ const BANKS = [
       {
         topic: 'Electrical systems',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which material allows electricity to pass through it?',
         options: ['Plastic', 'Copper', 'Rubber', 'Wood'],
         answer: 1,
@@ -330,6 +382,7 @@ const BANKS = [
       {
         topic: 'Electrical systems',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'Two bulbs are connected in series to a battery. One bulb fuses. What happens to the other bulb?',
         options: [
@@ -351,6 +404,7 @@ const BANKS = [
       {
         topic: 'Electrical systems',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Why must a circuit be closed for a bulb to light up?',
         options: [
           'Electricity needs a complete path to flow',
@@ -370,6 +424,7 @@ const BANKS = [
       {
         topic: 'Heat',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'In which direction does heat flow?',
         options: [
           'From a colder object to a hotter object',
@@ -389,6 +444,7 @@ const BANKS = [
       {
         topic: 'Heat',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'A metal spoon and a wooden spoon are placed in hot soup. After a while, the handle of the metal spoon feels hotter. Why?',
         options: [
@@ -409,6 +465,7 @@ const BANKS = [
       {
         topic: 'Heat',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Why are small gaps left between sections of railway tracks?',
         options: [
           'So the tracks can expand on hot days',
@@ -428,6 +485,7 @@ const BANKS = [
       {
         topic: 'Plant systems',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which part of a plant carries water from the roots to the leaves?',
         options: ['Food-carrying tubes', 'Water-carrying tubes', 'Leaves', 'Flowers'],
         answer: 1,
@@ -442,6 +500,7 @@ const BANKS = [
       {
         topic: 'Plant systems',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'A healthy plant was kept in a dark cupboard for a week and given water. Its leaves turned yellow. Why?',
         options: [
@@ -462,6 +521,7 @@ const BANKS = [
       {
         topic: 'Water cycle',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is the process called when water vapour changes into water droplets?',
         options: ['Evaporation', 'Condensation', 'Melting', 'Boiling'],
         answer: 1,
@@ -476,6 +536,7 @@ const BANKS = [
       {
         topic: 'Water cycle',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Water droplets form on the outside of a glass of ice water. Where do they come from?',
         options: [
           'Water seeps through the glass',
@@ -496,6 +557,7 @@ const BANKS = [
       {
         topic: 'Electrical systems',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which part of a circuit provides the electrical energy?',
         options: ['Battery', 'Switch', 'Bulb', 'Wire'],
         answer: 0,
@@ -510,6 +572,7 @@ const BANKS = [
       {
         topic: 'Electrical systems',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Two bulbs are connected in parallel to a battery. One bulb fuses. What happens to the other bulb?',
         options: ['It stays lit', 'It goes out', 'It gets much brighter', 'It flickers on and off'],
         answer: 0,
@@ -524,6 +587,7 @@ const BANKS = [
       {
         topic: 'Heat',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which material is the best conductor of heat?',
         options: ['Aluminium', 'Plastic', 'Air', 'Wood'],
         answer: 0,
@@ -538,6 +602,7 @@ const BANKS = [
       {
         topic: 'Heat',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Why does hot soup stay hot longer in a styrofoam cup than in a metal cup?',
         options: [
           'Styrofoam is a poor conductor of heat',
@@ -557,6 +622,7 @@ const BANKS = [
       {
         topic: 'Plant systems',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'In which part of a plant does photosynthesis mainly take place?',
         options: ['Leaves', 'Roots', 'Flowers', 'Fruits'],
         answer: 0,
@@ -571,6 +637,7 @@ const BANKS = [
       {
         topic: 'Plant systems',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which gas do plants take in to make food?',
         options: ['Carbon dioxide', 'Oxygen', 'Nitrogen', 'Water vapour'],
         answer: 0,
@@ -585,6 +652,7 @@ const BANKS = [
       {
         topic: 'Plant systems',
         skill: 'application',
+        difficulty: 'hard',
         question:
           'A ring of outer stem (with the food-carrying tubes) is removed from a plant. After a few weeks, the stem just ABOVE the ring swells. Why?',
         options: [
@@ -605,6 +673,7 @@ const BANKS = [
       {
         topic: 'Water cycle',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'When can evaporation take place?',
         options: ['At any temperature', 'Only at 100 °C', 'Only in sunlight', 'Only from the sea'],
         answer: 0,
@@ -619,6 +688,7 @@ const BANKS = [
       {
         topic: 'Water cycle',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Why do wet clothes dry faster on a windy day?',
         options: [
           'Wind removes water vapour near the clothes, so evaporation is faster',
@@ -638,6 +708,7 @@ const BANKS = [
       {
         topic: 'Water cycle',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Equal amounts of water are left out in different containers. Which one dries up fastest?',
         options: [
           'A wide, shallow dish',
@@ -667,6 +738,7 @@ const BANKS = [
       {
         topic: 'Quadratic equations',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Solve x² − 5x + 6 = 0.',
         options: ['x = 2 or x = 3', 'x = −2 or x = −3', 'x = 1 or x = 6', 'x = −1 or x = 6'],
         answer: 0,
@@ -681,6 +753,7 @@ const BANKS = [
       {
         topic: 'Quadratic equations',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Find the discriminant of 2x² − 3x + 5 = 0. How many real roots does it have?',
         options: ['−31, no real roots', '49, two real roots', '−31, two real roots', '1, two real roots'],
         answer: 0,
@@ -695,6 +768,7 @@ const BANKS = [
       {
         topic: 'Quadratic equations',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'A rectangle\'s length is 3 cm more than its width. Its area is 40 cm². Find the width.',
         options: ['5 cm', '8 cm', '−8 cm', '6.3 cm'],
@@ -711,6 +785,7 @@ const BANKS = [
       {
         topic: 'Indices',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Simplify a³ × a⁴.',
         options: ['a⁷', 'a¹²', '2a⁷', 'a'],
         answer: 0,
@@ -725,6 +800,7 @@ const BANKS = [
       {
         topic: 'Indices',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Evaluate 27^(2/3).',
         options: ['9', '18', '3', '1/9'],
         answer: 0,
@@ -739,6 +815,7 @@ const BANKS = [
       {
         topic: 'Trigonometry',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'In a right-angled triangle, sin θ is equal to:',
         options: ['opposite ÷ hypotenuse', 'adjacent ÷ hypotenuse', 'opposite ÷ adjacent', 'hypotenuse ÷ opposite'],
         answer: 0,
@@ -753,6 +830,7 @@ const BANKS = [
       {
         topic: 'Trigonometry',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'A 5 m ladder leans against a wall. It makes an angle of 60° with the ground. How high up the wall does it reach?',
         options: ['4.33 m', '2.5 m', '8.66 m', '5.77 m'],
@@ -768,6 +846,7 @@ const BANKS = [
       {
         topic: 'Trigonometry',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'In a right-angled triangle, the side opposite θ is 3 cm and the side adjacent to θ is 4 cm. Find θ.',
         options: ['36.9°', '53.1°', '0.75°', '48.6°'],
@@ -783,6 +862,7 @@ const BANKS = [
       {
         topic: 'Coordinate geometry',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Find the gradient of the line through (1, 2) and (3, 8).',
         options: ['3', '1/3', '−3', '6'],
         answer: 0,
@@ -797,6 +877,7 @@ const BANKS = [
       {
         topic: 'Coordinate geometry',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Find the distance between the points (1, 2) and (4, 6).',
         options: ['5 units', '7 units', '25 units', '√7 units'],
         answer: 0,
@@ -811,6 +892,7 @@ const BANKS = [
       {
         topic: 'Quadratic equations',
         skill: 'understanding',
+        difficulty: 'medium',
         question: 'Which equation has the roots x = 4 and x = −1?',
         options: ['(x − 4)(x + 1) = 0', '(x + 4)(x − 1) = 0', '(x − 4)(x − 1) = 0', '(x + 4)(x + 1) = 0'],
         answer: 0,
@@ -825,6 +907,7 @@ const BANKS = [
       {
         topic: 'Quadratic equations',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Solve x² = 9x.',
         options: ['x = 0 or x = 9', 'x = 9 only', 'x = 3', 'x = 3 or x = −3'],
         answer: 0,
@@ -839,6 +922,7 @@ const BANKS = [
       {
         topic: 'Indices',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is a⁰ (where a ≠ 0)?',
         options: ['1', '0', 'a', 'Undefined'],
         answer: 0,
@@ -853,6 +937,7 @@ const BANKS = [
       {
         topic: 'Indices',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is 2⁻³?',
         options: ['1/8', '−8', '−6', '1/6'],
         answer: 0,
@@ -867,6 +952,7 @@ const BANKS = [
       {
         topic: 'Indices',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Simplify (2x³)².',
         options: ['4x⁶', '2x⁶', '4x⁵', '2x⁵'],
         answer: 0,
@@ -881,6 +967,7 @@ const BANKS = [
       {
         topic: 'Trigonometry',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is the exact value of cos 60°?',
         options: ['1/2', '√3/2', '√3', '0'],
         answer: 0,
@@ -895,6 +982,7 @@ const BANKS = [
       {
         topic: 'Trigonometry',
         skill: 'application',
+        difficulty: 'medium',
         question:
           'From a point 20 m away from the base of a tree, the angle of elevation of the top is 35°. Find the height of the tree.',
         options: ['14.0 m', '11.5 m', '16.4 m', '28.6 m'],
@@ -910,6 +998,7 @@ const BANKS = [
       {
         topic: 'Coordinate geometry',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is the gradient of the line y = 3x − 2?',
         options: ['3', '−2', '3x', '1/3'],
         answer: 0,
@@ -924,6 +1013,7 @@ const BANKS = [
       {
         topic: 'Coordinate geometry',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Find the equation of the line with gradient 2 that passes through (1, 5).',
         options: ['y = 2x + 3', 'y = 2x + 5', 'y = 2x − 3', 'y = 5x + 2'],
         answer: 0,
@@ -938,6 +1028,7 @@ const BANKS = [
       {
         topic: 'Coordinate geometry',
         skill: 'application',
+        difficulty: 'easy',
         question: 'Find the midpoint of (2, 3) and (8, 7).',
         options: ['(5, 5)', '(3, 2)', '(10, 10)', '(6, 4)'],
         answer: 0,
@@ -963,6 +1054,7 @@ const BANKS = [
       {
         topic: 'Kinematics',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Speed is calculated using:',
         options: ['distance ÷ time', 'time ÷ distance', 'distance × time', 'distance − time'],
         answer: 0,
@@ -977,6 +1069,7 @@ const BANKS = [
       {
         topic: 'Kinematics',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A car speeds up from rest to 20 m/s in 5 s. What is its acceleration?',
         options: ['4 m/s²', '100 m/s²', '0.25 m/s²', '20 m/s²'],
         answer: 0,
@@ -991,6 +1084,7 @@ const BANKS = [
       {
         topic: 'Kinematics',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'On a speed–time graph, what does the area under the graph represent?',
         options: ['Distance travelled', 'Acceleration', 'Speed', 'Time taken'],
         answer: 0,
@@ -1005,6 +1099,7 @@ const BANKS = [
       {
         topic: 'Energy',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'A ball falls freely (ignore air resistance). What energy change takes place?',
         options: [
           'Gravitational potential energy → kinetic energy',
@@ -1024,6 +1119,7 @@ const BANKS = [
       {
         topic: 'Energy',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A 2 kg box is lifted 5 m. How much gravitational potential energy does it gain? (g = 10 N/kg)',
         options: ['100 J', '10 J', '50 J', '20 J'],
         answer: 0,
@@ -1038,6 +1134,7 @@ const BANKS = [
       {
         topic: 'Atomic structure',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is the charge on a neutron?',
         options: ['Positive', 'Negative', 'No charge (neutral)', 'It depends on the atom'],
         answer: 2,
@@ -1052,6 +1149,7 @@ const BANKS = [
       {
         topic: 'Atomic structure',
         skill: 'application',
+        difficulty: 'medium',
         question: 'An atom has 11 protons and a mass (nucleon) number of 23. How many neutrons does it have?',
         options: ['12', '23', '34', '11'],
         answer: 0,
@@ -1066,6 +1164,7 @@ const BANKS = [
       {
         topic: 'Acids and bases',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Which pH value is most likely for a strong acid?',
         options: ['1', '7', '14', '9'],
         answer: 0,
@@ -1080,6 +1179,7 @@ const BANKS = [
       {
         topic: 'Acids and bases',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Dilute hydrochloric acid is added to calcium carbonate. What are the products?',
         options: [
           'Salt, water and carbon dioxide',
@@ -1099,6 +1199,7 @@ const BANKS = [
       {
         topic: 'Acids and bases',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Zinc reacts with dilute sulfuric acid and gives off a gas. Which test identifies this gas?',
         options: [
           'A lighted splint gives a "pop"',
@@ -1118,6 +1219,7 @@ const BANKS = [
       {
         topic: 'Kinematics',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'On a distance–time graph, a horizontal line means the object is:',
         options: ['At rest', 'Moving at constant speed', 'Speeding up', 'Slowing down'],
         answer: 0,
@@ -1132,6 +1234,7 @@ const BANKS = [
       {
         topic: 'Kinematics',
         skill: 'application',
+        difficulty: 'easy',
         question: 'A runner covers 400 m in 80 s. What is the average speed?',
         options: ['5 m/s', '0.2 m/s', '32 000 m/s', '320 m/s'],
         answer: 0,
@@ -1146,6 +1249,7 @@ const BANKS = [
       {
         topic: 'Energy',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'The principle of conservation of energy says that energy:',
         options: [
           'Cannot be created or destroyed, only changed from one form to another',
@@ -1165,6 +1269,7 @@ const BANKS = [
       {
         topic: 'Energy',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A 4 kg trolley moves at 3 m/s. What is its kinetic energy?',
         options: ['18 J', '36 J', '6 J', '12 J'],
         answer: 0,
@@ -1179,6 +1284,7 @@ const BANKS = [
       {
         topic: 'Energy',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A motor takes in 500 J of electrical energy and gives out 300 J of useful kinetic energy. What is its efficiency?',
         options: ['60%', '40%', '167%', '200 J'],
         answer: 0,
@@ -1193,6 +1299,7 @@ const BANKS = [
       {
         topic: 'Atomic structure',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'Isotopes of the same element have the same number of:',
         options: [
           'Protons, but different numbers of neutrons',
@@ -1212,6 +1319,7 @@ const BANKS = [
       {
         topic: 'Atomic structure',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Chlorine has a proton number of 17. What is the electronic configuration of a chlorine atom?',
         options: ['2.8.7', '2.8.8', '2.7.8', '8.8.1'],
         answer: 0,
@@ -1226,6 +1334,7 @@ const BANKS = [
       {
         topic: 'Atomic structure',
         skill: 'application',
+        difficulty: 'medium',
         question: 'A sodium atom (2.8.1) forms an ion. Which ion forms, and how?',
         options: [
           'Na⁺, by losing one electron',
@@ -1245,6 +1354,7 @@ const BANKS = [
       {
         topic: 'Acids and bases',
         skill: 'understanding',
+        difficulty: 'easy',
         question: 'What is an alkali?',
         options: [
           'A base that dissolves in water',
@@ -1264,6 +1374,7 @@ const BANKS = [
       {
         topic: 'Acids and bases',
         skill: 'application',
+        difficulty: 'medium',
         question: 'Dilute hydrochloric acid neutralises sodium hydroxide. What are the products?',
         options: [
           'Sodium chloride and water',
@@ -1282,6 +1393,18 @@ const BANKS = [
       },
     ],
   },
+];
+
+// The first banks plus their extra questions, followed by every bank from data/banks/.
+const BANKS = [
+  ...FIRST_BANKS.map((bank) => ({
+    ...bank,
+    questions: [
+      ...bank.questions,
+      ...BANK_FILES.flatMap((file) => file.EXTRA?.[bank.id] ?? []),
+    ],
+  })),
+  ...BANK_FILES.flatMap((file) => file.BANKS ?? []),
 ];
 
 // Finds the mock bank that matches what the student picked, or null if none.

@@ -20,6 +20,13 @@ export const SKILL_INFO = {
   },
 };
 
+// Question difficulty (see data/questions.js). AI-generated questions may not have one.
+export const DIFFICULTY_LABELS = {
+  easy: 'Easy',
+  medium: 'Medium',
+  hard: 'Hard',
+};
+
 // Topic status, from worst to best. Same wording as the concept map.
 export const TOPIC_STATUS = {
   weak: { label: 'Needs work', order: 0 },
