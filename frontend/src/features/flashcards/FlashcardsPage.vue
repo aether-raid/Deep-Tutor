@@ -345,7 +345,7 @@ function fromRecipe(card) {
   if (typeof recipe.make === 'function') {
     const made = recipe.make(randomInt);
     if (!made || typeof made.question !== 'string' || made.answer === undefined || made.answer === null) return null;
-    return { question: made.question, answer: String(made.answer), working: made.working ? String(made.working) : '' };
+    return { question: made.question, answer: String(made.answer), working: made.working ? String(made.working) : '', ...(made.code ? { code: made.code } : {}) };
   }
 
   if (typeof recipe.template !== 'string' || typeof recipe.answer !== 'function') return null;
@@ -406,7 +406,7 @@ function localVariations(card, count, used) {
   for (let attempt = 0; attempt < 60 && made.length < count; attempt++) {
     const variation = fromRecipe(card) ?? fromSimpleSum(card);
     if (!variation) break; // no recipe and not a simple sum: code can't help with this card
-    const key = variation.question.trim().toLowerCase();
+    const key = `${variation.question}\n${variation.code ?? ''}`.trim().toLowerCase();
     if (used.has(key)) continue;
     used.add(key);
     made.push({ ...variation, source: 'auto' });
@@ -503,7 +503,7 @@ function buildPrompt(sourceCard) {
 
 // Makes exactly 3 extra cards when possible.
 async function generateExtra(sourceCard) {
-  const used = new Set([String(sourceCard.question).trim().toLowerCase()]);
+  const used = new Set([`${sourceCard.question}\n${sourceCard.code ?? ''}`.trim().toLowerCase()]);
 
   // 1) Recipe cards: code makes them first, so the answers are guaranteed correct.
   const recipeCards = sourceCard.vary ? localVariations(sourceCard, EXTRA_PER_WRONG, used) : [];
@@ -557,6 +557,7 @@ async function focusOnWrong() {
       newCards.push({
         id: `original-${nextRound}-${source.id}`,
         question: source.question,
+        code: source.code,
         answer: source.answer,
         working: source.working,
         ref: source.ref,
@@ -800,6 +801,8 @@ function ringOffset(percent) {
               <span class="card-face card-front" :aria-hidden="currentCard.flipped">
                 <span class="face-tag">QUESTION</span>
                 <span class="card-content" :class="{ blurred: !currentCard.started }">{{ currentCard.question }}</span>
+                <!-- Program code (e.g. Python) keeps its indentation in a left-aligned code box. -->
+                <span v-if="currentCard.code" class="card-code" :class="{ blurred: !currentCard.started }">{{ currentCard.code }}</span>
                 <span class="flip-hint">{{ currentCard.started ? 'Click to flip ↻' : 'Start timer to reveal question' }}</span>
               </span>
               <!-- BACK: answer (only filled in once revealed, so it can't be peeked early) -->
@@ -1194,7 +1197,23 @@ span.crumb { cursor: default; }
 .card-content { display: block; font-size: clamp(1.35rem, 3vw, 2rem); line-height: 1.45; font-weight: 600; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* Answers are often longer than questions, so they use a slightly smaller size. */
 .answer-content { font-size: clamp(1.05rem, 2.2vw, 1.35rem); font-weight: 500; text-align: left; }
-.card-content.blurred { filter: blur(9px); user-select: none; }
+.card-content.blurred, .card-code.blurred { filter: blur(9px); user-select: none; }
+.card-code {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  text-align: left;
+  white-space: pre;
+  overflow-x: auto;
+  font-family: var(--font-mono, var(--font-body));
+  font-size: 0.95rem;
+  line-height: 1.5;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
 .flip-hint { font-size: 0.8rem; color: var(--color-muted); }
 .card-working {
   font-size: 0.9rem;

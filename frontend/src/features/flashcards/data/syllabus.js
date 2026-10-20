@@ -398,9 +398,13 @@ const aPhysics = {
 const aComputing = {
   id: 'a-computing', name: 'Computing', tag: 'H2', syllabus: 'A Level H2 Computing 9569 (revised, from 2027)',
   topics: [
+    // ★ Module 1 has flashcard decks (data/decks/a-h2-computing-1.js).
     { code: 'M1', name: 'Programming Fundamentals', subtopics: subs([
-      ['1.1', 'Algorithmic Fundamentals'], ['1.2', 'Programming Constructs'], ['1.3', 'Coding Standards'],
-      ['1.4', 'Recursion'], ['1.5', 'Data Validation and Program Testing'],
+      ['1.1', 'Algorithmic Fundamentals', { deck: 'a-h2c-1-1' }],
+      ['1.2', 'Programming Constructs', { deck: 'a-h2c-1-2' }],
+      ['1.3', 'Coding Standards', { deck: 'a-h2c-1-3' }],
+      ['1.4', 'Recursion', { deck: 'a-h2c-1-4' }],
+      ['1.5', 'Data Validation and Program Testing', { deck: 'a-h2c-1-5' }],
     ]) },
     { code: 'M2', name: 'Data Structures and Algorithms', subtopics: subs([
       ['2.1', 'Data Structures'], ['2.2', 'Searching and Sorting Algorithms'], ['2.3', 'Object-Oriented Programming'],
