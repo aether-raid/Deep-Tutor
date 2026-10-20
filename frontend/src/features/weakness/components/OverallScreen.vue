@@ -274,9 +274,9 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
 }
 
 .pill.active {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-primary);
 }
 
 /* ---------- Subject cards ---------- */
@@ -337,21 +337,31 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
   font-weight: 700;
 }
 
+/* Selected card: name and percent turn light so they stand out */
+.subject-card.selected .subject-name,
+.subject-card.selected .subject-percent {
+  color: var(--color-bg);
+}
+
 .bar {
   width: 100%;
   height: 6px;
   border-radius: 999px;
-  background: var(--color-primary-soft);
+  background: var(--color-primary);
   overflow: hidden;
 }
 
 .subject-card.selected .bar {
+  background: var(--color-primary);
+}
+
+.subject-card.selected .bar-fill {
   background: var(--color-surface);
 }
 
 .bar-fill {
   height: 100%;
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 /* Strength badges: style instead of colour (theme has no red/green) */
@@ -362,16 +372,22 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
   border-radius: 999px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
+  color: var(--color-bg)
 }
 
 .badge-weak {
-  background: var(--color-primary);
+  background: var(--color-danger);
   border-color: var(--color-primary);
   color: var(--color-bg);
 }
 
 .badge-moderate {
-  background: var(--color-primary-soft);
+  background: var(--color-warning);
+}
+
+.badge-strong {
+  background: var(--color-success);
+  
 }
 
 .badge-none {
@@ -432,10 +448,7 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
   font-size: 0.9rem;
 }
 
-.summary-box.attention {
-  border-left: 4px solid var(--color-primary);
-  background: var(--color-primary-soft);
-}
+
 
 .summary-label {
   font-weight: 700;
@@ -507,7 +520,7 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   color: var(--color-bg);
   border: 1px solid var(--color-primary);
 }
@@ -522,6 +535,7 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
 
 .btn-small:hover {
   background: var(--color-primary-soft);
+  color: var(--color-bg)
 }
 
 /* ---------- Small screens ---------- */

@@ -92,6 +92,14 @@ const weakest = computed(() => {
   return tried.reduce((low, s) => (s.percent < low.percent ? s : low));
 });
 
+// Ring maths: the ring is an SVG circle drawn with a dashed stroke.
+// We hide part of the dash (the "offset") to show how full the ring is.
+const RING_SIZE = 160;
+const RING_STROKE = 18;
+const ringRadius = (RING_SIZE - RING_STROKE) / 2;
+const ringCircumference = 2 * Math.PI * ringRadius;
+const ringOffset = computed(() => ringCircumference * (1 - (overall.value ?? 0) / 100));
+
 const levelName = computed(() => findLevel(level.value)?.name ?? '');
 
 function selectLevel(id) {
@@ -172,7 +180,29 @@ function selectLevel(id) {
       <div v-else class="subject-layout">
         <!-- Overall strength ring for this level -->
         <div class="overview">
-          <div class="ring" :style="{ '--pct': overall ?? 0 }">
+          <div class="ring">
+            <svg :width="RING_SIZE" :height="RING_SIZE" :viewBox="`0 0 ${RING_SIZE} ${RING_SIZE}`" aria-hidden="true">
+              <!-- Background circle -->
+              <circle
+                class="ring-track"
+                :cx="RING_SIZE / 2"
+                :cy="RING_SIZE / 2"
+                :r="ringRadius"
+                :stroke-width="RING_STROKE"
+              />
+              <!-- Filled part (rotated so it starts at the top) -->
+              <circle
+                class="ring-fill"
+                :class="{ empty: !overall }"
+                :cx="RING_SIZE / 2"
+                :cy="RING_SIZE / 2"
+                :r="ringRadius"
+                :stroke-width="RING_STROKE"
+                :stroke-dasharray="ringCircumference"
+                :stroke-dashoffset="ringOffset"
+                :transform="`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`"
+              />
+            </svg>
             <div class="ring-inner">
               <span class="ring-value">{{ overall === null ? '–' : overall + '%' }}</span>
               <span class="ring-label">Overall strength</span>
@@ -348,9 +378,9 @@ function selectLevel(id) {
 }
 
 .pill.active {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-primary);
 }
 
 .pill-hint {
@@ -375,25 +405,35 @@ function selectLevel(id) {
   text-align: center;
 }
 
-/* Ring chart made with a conic gradient. --pct is set from the template. */
+/* Ring chart made with SVG circles (same idea as flashcards' ProgressRing). */
 .ring {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: conic-gradient(
-    var(--color-primary) calc(var(--pct) * 1%),
-    var(--color-border) 0
-  );
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
+.ring-track {
+  fill: none;
+  stroke: var(--color-bg);
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--color-primary-soft);
+  stroke-linecap: round;
+  /* Smoothly animate the ring when the percentage changes */
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+/* A round line cap would show a dot at 0%, so hide it */
+.ring-fill.empty {
+  opacity: 0;
+}
+
+/* The text sits on top of the SVG, in the middle of the ring */
 .ring-inner {
-  width: 124px;
-  height: 124px;
-  border-radius: 50%;
-  background: var(--color-surface);
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -523,13 +563,22 @@ function selectLevel(id) {
 .bar {
   height: 6px;
   border-radius: 999px;
-  background: var(--color-primary-soft);
+  background: var(--color-primary);
   overflow: hidden;
 }
 
 .bar-fill {
   height: 100%;
+  background: var(--color-primary-soft);
+}
+
+/* Selected subject card: main bar --color-primary, fill --color-surface */
+.subject-card.selected .bar {
   background: var(--color-primary);
+}
+
+.subject-card.selected .bar-fill {
+  background: var(--color-surface);
 }
 
 .cta {

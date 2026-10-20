@@ -230,7 +230,7 @@ function quit() {
 
         <!-- Previous / Skip / Next -->
         <div class="nav">
-          <button class="btn btn-outline" :disabled="current === 0" @click="goTo(current - 1)">
+          <button class="btn btn-outline prev-btn" :disabled="current === 0" @click="goTo(current - 1)">
             Previous
           </button>
           <div class="nav-right">
@@ -329,14 +329,14 @@ function quit() {
 
 .progress {
   height: 4px;
-  background: var(--color-primary-soft);
+  background: var(--color-surface);
   border-radius: 999px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   transition: width 0.2s;
 }
 
@@ -425,6 +425,7 @@ function quit() {
 .option.selected {
   border: 2px solid var(--color-primary);
   background: var(--color-primary-soft);
+  color: var(--color-bg);
 }
 
 .letter {
@@ -443,7 +444,7 @@ function quit() {
 .option.selected .letter {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* ---------- Confidence ---------- */
@@ -481,7 +482,7 @@ function quit() {
 }
 
 .pill.active {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
   color: var(--color-bg);
 }
@@ -528,7 +529,7 @@ function quit() {
 }
 
 .grid-btn.answered {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   border-color: var(--color-primary);
   color: var(--color-bg);
 }
@@ -571,14 +572,14 @@ function quit() {
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   color: var(--color-bg);
   border: 1px solid var(--color-primary);
 }
 
 .btn-outline {
   background: var(--color-surface);
-  color: var(--color-text);
+  color: var(--color-bg);
   border: 1px solid var(--color-primary);
 }
 
@@ -598,6 +599,17 @@ function quit() {
 
 .full {
   width: 100%;
+}
+
+/* "Previous" button only: dark text (other outline buttons are not affected) */
+.btn-outline.prev-btn {
+  color: var(--color-text);
+}
+
+/* Bottom "Submit quiz" button: always --color-primary-soft, even on hover */
+.btn-outline.full,
+.btn-outline.full:hover:not(:disabled) {
+  background: var(--color-primary-soft);
 }
 
 .link {

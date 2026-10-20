@@ -326,7 +326,7 @@ function answerText(item, index) {
   border: 1px solid var(--color-border);
   border-left: 4px solid var(--color-primary);
   border-radius: var(--radius);
-  background: var(--color-primary-soft);
+  background: var(--color-surface);
   padding: var(--space-4) var(--space-5);
   display: flex;
   justify-content: space-between;
@@ -460,7 +460,7 @@ function answerText(item, index) {
   font-weight: 600;
   padding: 2px var(--space-2);
   border-radius: 999px;
-  background: var(--color-primary);
+  background: var(--color-danger);
   color: var(--color-bg);
 }
 
@@ -472,17 +472,21 @@ function answerText(item, index) {
 .bar {
   height: 6px;
   border-radius: 999px;
-  background: var(--color-primary-soft);
+  background: var(--color-primary);
   overflow: hidden;
 }
 
 .topic.selected .bar {
-  background: var(--color-surface);
+  background: var(--color-primary);
 }
 
 .bar-fill {
   height: 100%;
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.topic.selected .bar-fill {
+  background: var(--color-surface);
 }
 
 /* ---------- Detail panel ---------- */
@@ -653,7 +657,7 @@ function answerText(item, index) {
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background: var(--color-primary-soft);
   color: var(--color-bg);
   border: 1px solid var(--color-primary);
 }

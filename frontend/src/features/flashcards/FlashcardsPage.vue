@@ -1104,8 +1104,8 @@ span.crumb { cursor: default; }
 .ring-box { position: relative; width: 80px; height: 80px; display: grid; place-items: center; }
 .ring-box svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .ring-track, .ring-fill { fill: none; stroke-width: 10; }
-.ring-track { stroke: var(--color-border); transition: stroke 0.35s ease; }
-.ring-fill { stroke: var(--color-primary); stroke-linecap: round; transition: stroke-dashoffset 0.45s ease; }
+.ring-track { stroke: var(--color-surface); transition: stroke 0.35s ease; }
+.ring-fill { stroke: var(--color-primary-soft); stroke-linecap: round; transition: stroke-dashoffset 0.45s ease; }
 .ring-middle { position: absolute; font-size: 0.98rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 
 /* Accuracy ring: green slice = correct, red slice = wrong (like the wireframe) */
@@ -1258,9 +1258,9 @@ span.crumb { cursor: default; }
   cursor: pointer;
   transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
 }
-.primary-button { background: var(--color-primary); color: var(--color-bg); border: 1px solid var(--color-primary); }
+.primary-button { background: var(--color-primary); color: var(--color-text); border: 1px solid var(--color-primary); }
 .nav-button { background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); }
-.next-button:not(:disabled) { background: var(--color-primary); color: var(--color-bg); border-color: var(--color-primary); }
+.next-button:not(:disabled) { background: var(--color-surface); color: var(--color-text); border-color: var(--color-primary); }
 .primary-button:hover:not(:disabled), .nav-button:hover:not(:disabled),
 .answer-button:hover:not(:disabled), .result-button:hover:not(:disabled) {
   transform: translateY(-2px);

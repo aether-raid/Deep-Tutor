@@ -68,7 +68,7 @@ import { PROJECT_NAME, NAV_ITEMS } from '../config.js';
 
 .nav-link:hover {
   background: var(--color-primary-soft);
-  color: var(--color-text);
+  color: var(--color-primary);
 }
 
 .nav-link.active {
