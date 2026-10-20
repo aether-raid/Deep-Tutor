@@ -137,11 +137,12 @@ function handleClick() {
 
 .back {
   transform: rotateY(180deg);
-  background: linear-gradient(
+  background-color: var(--color-muted);
+  /* background: linear-gradient(
     135deg,
     var(--color-primary),
     color-mix(in srgb, var(--color-primary) 70%, var(--color-muted))
-  );
+  ); */
   color: var(--color-bg);
 }
 
@@ -218,7 +219,7 @@ function handleClick() {
   border: none;
   border-radius: 999px;
   background: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-text);
   cursor: pointer;
   box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary) 30%, transparent);
   transition: transform 0.15s ease;

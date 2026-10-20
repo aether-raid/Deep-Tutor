@@ -3,12 +3,12 @@
   Every component must use these variables and never hardcode colours or fonts.
 */
 :root {
-  --color-primary: #1f2937;
-  --color-primary-soft: #f3f4f6;
-  --color-bg: #ffffff;
-  --color-surface: #ffffff;
-  --color-text: #111827;
-  --color-muted: #6b7280;
+  --color-primary: #ddebff;
+  --color-primary-soft: #7487dbfd;
+  --color-bg: #e0efff;
+  --color-surface: #A7C7E7;
+  --color-text: #001157;
+  --color-muted: #001157;
   --color-border: #e5e7eb;
 
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,

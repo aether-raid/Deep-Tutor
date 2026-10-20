@@ -40,7 +40,7 @@ const emit = defineEmits(['select']);
   padding: var(--space-3) var(--space-5);
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: var(--color-primary-soft);
+  background: var(--color-surface);
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: 1rem;
