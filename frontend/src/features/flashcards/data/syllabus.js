@@ -23,6 +23,11 @@ function named(names) {
   return names.map(name => ({ code: '', name }));
 }
 
+// Like named(), but every sub-topic gets a flashcard deck: 'a-phys-1' → decks 'a-phys-1-1', 'a-phys-1-2', ...
+function decked(prefix, names) {
+  return names.map((name, i) => ({ code: '', name, deck: `${prefix}-${i + 1}` }));
+}
+
 // Builds the SL version of an IB subject by removing everything marked hlOnly.
 function standardLevel(hlSubject, overrides) {
   return {
@@ -316,11 +321,14 @@ const ibComputerScienceHL = {
 const aMath = {
   id: 'a-math', name: 'Mathematics', tag: 'H2', syllabus: 'A Level H2 Mathematics 9758 (2026/2027)',
   topics: [
+    // ★ Topics 1 and 2 have flashcard decks (data/decks/a-h2-math-1-2.js).
     { theme: 'Section A — Pure Mathematics', code: '1', name: 'Functions and graphs', subtopics: subs([
-      ['1.1', 'Functions'], ['1.2', 'Graphs and transformations'], ['1.3', 'Equations and inequalities'],
+      ['1.1', 'Functions', { deck: 'a-h2m-1-1' }],
+      ['1.2', 'Graphs and transformations', { deck: 'a-h2m-1-2' }],
+      ['1.3', 'Equations and inequalities', { deck: 'a-h2m-1-3' }],
     ]) },
     { theme: 'Section A — Pure Mathematics', code: '2', name: 'Sequences and series', subtopics: subs([
-      ['2.1', 'Sequences and series'],
+      ['2.1', 'Sequences and series', { deck: 'a-h2m-2-1' }],
     ]) },
     { theme: 'Section A — Pure Mathematics', code: '3', name: 'Vectors', subtopics: subs([
       ['3.1', 'Basic properties of vectors in two and three dimensions'], ['3.2', 'Scalar and vector products in vectors'],
@@ -340,17 +348,18 @@ const aMath = {
   ],
 };
 
+// ★ Section I (Topics 1–4) has flashcard decks (data/decks/a-physics-1.js … a-physics-4.js).
 const aPhysics = {
   id: 'a-physics', name: 'Physics', tag: 'H2', syllabus: 'A Level H2 Physics 9478 (revised; first examined 2026)',
   topics: [
     { theme: 'I — Foundations of Physics', code: '1', name: 'Quantities and Measurement',
-      subtopics: named(['Physical quantities and SI units', 'Errors and uncertainties', 'Scalars and vectors']) },
+      subtopics: decked('a-phys-1', ['Physical quantities and SI units', 'Errors and uncertainties', 'Scalars and vectors']) },
     { theme: 'I — Foundations of Physics', code: '2', name: 'Forces and Moments',
-      subtopics: named(['Types of force', 'Moment and torque', 'Translational and rotational equilibrium']) },
+      subtopics: decked('a-phys-2', ['Types of force', 'Moment and torque', 'Translational and rotational equilibrium']) },
     { theme: 'I — Foundations of Physics', code: '3', name: 'Motion and Forces',
-      subtopics: named(['Kinematics', 'Uniformly accelerated linear motion', 'Mass and linear momentum', 'Laws of motion']) },
+      subtopics: decked('a-phys-3', ['Kinematics', 'Uniformly accelerated linear motion', 'Mass and linear momentum', 'Laws of motion']) },
     { theme: 'I — Foundations of Physics', code: '4', name: 'Energy and Fields',
-      subtopics: named(['Energy stores and transfers', 'Work done by a force', 'Kinetic energy', 'Concept of a field', 'Potential energy', 'Power and efficiency']) },
+      subtopics: decked('a-phys-4', ['Energy stores and transfers', 'Work done by a force', 'Kinetic energy', 'Concept of a field', 'Potential energy', 'Power and efficiency']) },
     { theme: 'II — Mechanics', code: '5', name: 'Projectile Motion',
       subtopics: named(['Free fall', 'Gravitational potential energy in a uniform field', 'Effects of air resistance']) },
     { theme: 'II — Mechanics', code: '6', name: 'Collisions',
