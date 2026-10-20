@@ -40,6 +40,13 @@ export function fmt(x) {
   return text.replace(/^-/, '−');
 }
 
+// Builds a NUMBER card. The original card and every "Focus on wrong" variation come from the
+// same build() function, so the printed answer can never disagree with the question.
+// "extra" holds optional fields such as seconds (a longer timer for a long question).
+export function numberCard(id, difficulty, ref, build, defaults, makeValues, extra = {}) {
+  return { id, difficulty, ref, ...extra, ...build(defaults), vary: { make: rand => build(makeValues(rand)) } };
+}
+
 // "a" or "an" before a number when read aloud: an 8 kg mass, an 18 N force, a 12 m drop.
 export function aOrAn(n) {
   const whole = String(n).split('.')[0];
