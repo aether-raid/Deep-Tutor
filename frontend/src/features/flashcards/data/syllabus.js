@@ -34,8 +34,9 @@ function standardLevel(hlSubject, overrides) {
         ...topic,
         subtopics: topic.subtopics
           .filter(sub => !sub.hlOnly)
-          // deck and note are taken out on purpose: SL has no decks yet and HL notes don't apply.
-          .map(({ deck, note, ...sub }) => ({ ...sub, ...(sub.slNote ? { note: sub.slNote } : {}) })),
+          // HL notes (e.g. "plus extra HL-only content") don't apply to SL, so "note" is left out on purpose.
+          // Decks are kept: an SL sub-topic shares its deck with HL (HL-only sub-topics are already removed).
+          .map(({ note, ...sub }) => ({ ...sub, ...(sub.slNote ? { note: sub.slNote } : {}) })),
       })),
   };
 }
@@ -167,18 +168,19 @@ const ibMathHL = {
   id: 'ib-math-hl', name: 'Mathematics AA', tag: 'HL',
   syllabus: 'IB Mathematics: Analysis and Approaches (current guide; sub-topic names are short labels)',
   topics: [
+    // ★ Topic 1 has flashcard decks (data/decks/ib-math-aa-1.js).
     { code: '1', name: 'Number and algebra', subtopics: subs([
-      ['1.1', 'Standard form'], ['1.2', 'Arithmetic sequences and series'], ['1.3', 'Geometric sequences and series'],
-      ['1.4', 'Financial applications'], ['1.5', 'Integer exponents and introduction to logarithms'],
-      ['1.6', 'Simple deductive proof'], ['1.7', 'Rational exponents and laws of logarithms'],
-      ['1.8', 'Sum of infinite geometric sequences'], ['1.9', 'Binomial theorem'],
-      ['1.10', 'Counting principles, permutations and combinations', { hlOnly: true }],
-      ['1.11', 'Partial fractions', { hlOnly: true }],
-      ['1.12', 'Complex numbers: Cartesian form and Argand diagram', { hlOnly: true }],
-      ['1.13', 'Modulus–argument (polar) and Euler forms', { hlOnly: true }],
-      ['1.14', "Complex conjugate roots and De Moivre's theorem", { hlOnly: true }],
-      ['1.15', 'Proof by induction, contradiction and counterexample', { hlOnly: true }],
-      ['1.16', 'Systems of linear equations', { hlOnly: true }],
+      ['1.1', 'Standard form', { deck: 'ib-math-1-1' }], ['1.2', 'Arithmetic sequences and series', { deck: 'ib-math-1-2' }], ['1.3', 'Geometric sequences and series', { deck: 'ib-math-1-3' }],
+      ['1.4', 'Financial applications', { deck: 'ib-math-1-4' }], ['1.5', 'Integer exponents and introduction to logarithms', { deck: 'ib-math-1-5' }],
+      ['1.6', 'Simple deductive proof', { deck: 'ib-math-1-6' }], ['1.7', 'Rational exponents and laws of logarithms', { deck: 'ib-math-1-7' }],
+      ['1.8', 'Sum of infinite geometric sequences', { deck: 'ib-math-1-8' }], ['1.9', 'Binomial theorem', { deck: 'ib-math-1-9' }],
+      ['1.10', 'Counting principles, permutations and combinations', { hlOnly: true, deck: 'ib-math-1-10' }],
+      ['1.11', 'Partial fractions', { hlOnly: true, deck: 'ib-math-1-11' }],
+      ['1.12', 'Complex numbers: Cartesian form and Argand diagram', { hlOnly: true, deck: 'ib-math-1-12' }],
+      ['1.13', 'Modulus–argument (polar) and Euler forms', { hlOnly: true, deck: 'ib-math-1-13' }],
+      ['1.14', "Complex conjugate roots and De Moivre's theorem", { hlOnly: true, deck: 'ib-math-1-14' }],
+      ['1.15', 'Proof by induction, contradiction and counterexample', { hlOnly: true, deck: 'ib-math-1-15' }],
+      ['1.16', 'Systems of linear equations', { hlOnly: true, deck: 'ib-math-1-16' }],
     ]) },
     { code: '2', name: 'Functions', subtopics: subs([
       ['2.1', 'Equations of straight lines'], ['2.2', 'Functions: domain, range and graph'], ['2.3', 'Graph of a function'],
@@ -241,8 +243,12 @@ const ibPhysicsHL = {
   id: 'ib-physics-hl', name: 'Physics', tag: 'HL', syllabus: 'IB Physics guide (first assessment 2025)',
   topics: [
     { code: 'A', name: 'Space, time and motion', subtopics: subs([
-      ['A.1', 'Kinematics'], ['A.2', 'Forces and momentum'], ['A.3', 'Work, energy and power'],
-      ['A.4', 'Rigid body mechanics', { hlOnly: true }], ['A.5', 'Galilean and special relativity', { hlOnly: true }],
+      // ★ Theme A has flashcard decks (data/decks/ib-physics-a.js).
+      ['A.1', 'Kinematics', { deck: 'ib-phys-a1' }],
+      ['A.2', 'Forces and momentum', { deck: 'ib-phys-a2' }],
+      ['A.3', 'Work, energy and power', { deck: 'ib-phys-a3' }],
+      ['A.4', 'Rigid body mechanics', { hlOnly: true, deck: 'ib-phys-a4' }],
+      ['A.5', 'Galilean and special relativity', { hlOnly: true, deck: 'ib-phys-a5' }],
     ]) },
     { code: 'B', name: 'The particulate nature of matter', subtopics: subs([
       ['B.1', 'Thermal energy transfers'], ['B.2', 'Greenhouse effect'], ['B.3', 'Gas laws'],

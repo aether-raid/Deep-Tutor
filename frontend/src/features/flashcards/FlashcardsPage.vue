@@ -22,7 +22,8 @@ import { askLLM } from '../../shared/llm.js';
 
 function buildDeck(source) {
   return source.map((card, order) => {
-    const configured = Number(TIME_LIMITS?.[card.difficulty]);
+    // A card can ask for a longer timer (e.g. a multi-step maths question); otherwise use its difficulty.
+    const configured = Number(card.seconds ?? TIME_LIMITS?.[card.difficulty]);
     const timeLimit = Number.isFinite(configured) && configured > 0 ? configured : 60;
 
     return {
@@ -83,6 +84,13 @@ const status = computed(() => {
 
 function wholePercent(value) {
   return `${Math.round(value)}%`;
+}
+
+// Label on review-round cards, showing how the card was made.
+function variationLabel(source) {
+  if (source === 'auto') return '✦ New numbers';
+  if (source === 'alt') return '✦ Asked another way';
+  return '✦ AI variation';
 }
 
 // ---------- Navigation: curriculum → subject → syllabus → flashcards ----------
@@ -255,7 +263,12 @@ function goBack() {
 function goNext() {
   if (!canNext.value) return; // cannot skip an unanswered card
   if (isLast.value) {
-    if (allDone.value) showResults.value = true;
+    if (allDone.value) {
+      showResults.value = true;
+      // The "how this round was built" notes belong to the start of a round, not its results page.
+      reviewNote.value = '';
+      generationError.value = '';
+    }
     return;
   }
   index.value += 1;
@@ -279,13 +292,37 @@ function resetAll() {
 // ---------- Review round: 3 extra practice cards for EVERY wrong card ----------
 //
 // For each wrong card the review round contains:
-//   the original card  +  3 new cards testing the same concept with different numbers.
+//   the original card  +  3 new cards testing the same idea.
 //
-// How the 3 new cards are made:
-//   - Card has a "vary" recipe (data/cards.js)? Code makes them first — always correct.
-//   - Otherwise ask the AI (askLLM) to change the numbers and work out each answer.
-//   - Anything still missing: code fills simple sums like "What is 12 × 7?".
+// How the 3 new cards are made, in this order:
+//   1. NUMBER cards with a "vary" recipe → code makes new numbers and calculates the answer (always correct).
+//   2. CONCEPT cards with "alternates"   → pre-written questions asking the same idea another way.
+//   3. Still short?                      → ask the AI (askLLM) for the rest.
+//   4. Last resort                       → code varies simple sums like "What is 12 × 7?".
 const EXTRA_PER_WRONG = 3;
+
+// Mixes a list into random order (Fisher–Yates shuffle) without changing the original.
+function shuffled(list) {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// Takes up to "count" pre-written alternate questions that haven't been used yet.
+function fromAlternates(card, count, used) {
+  const made = [];
+  for (const alt of shuffled(card.alternates ?? [])) {
+    if (made.length === count) break;
+    const key = String(alt.question).trim().toLowerCase();
+    if (!alt.question || !alt.answer || used.has(key)) continue;
+    used.add(key);
+    made.push({ question: alt.question, answer: alt.answer, working: alt.working ?? '', source: 'alt' });
+  }
+  return made;
+}
 
 // Random whole number between min and max (inclusive), in jumps of "step".
 function randomInt(min, max, step = 1) {
@@ -454,7 +491,7 @@ function buildPrompt(sourceCard) {
     '"working" is a one-line calculation or reason showing how the answer is reached.',
     'Every card must test the EXACT SAME underlying concept as the original.',
     'If the original is numerical, CHANGE the input numbers and recalculate each answer carefully, step by step.',
-    'If the original is not numerical, ask about the same concept from a different angle or with a different example.',
+    'If the original is not numerical, ask about the same concept a different way: reverse the question (give the description, ask for the term), use a short real-world scenario, a fill-the-gap sentence, or a true/false statement that must be explained.',
     'Keep the same units, assumptions and difficulty. No duplicate questions.',
     'Do not invent facts. Use concise, clear wording.',
     `Syllabus topic: ${JSON.stringify(sourceCard.topic ?? '')}`,
@@ -471,10 +508,14 @@ async function generateExtra(sourceCard) {
   // 1) Recipe cards: code makes them first, so the answers are guaranteed correct.
   const recipeCards = sourceCard.vary ? localVariations(sourceCard, EXTRA_PER_WRONG, used) : [];
 
-  // 2) The AI fills whatever is still needed.
+  // 2) Pre-written alternates for concept cards.
+  const altCards = fromAlternates(sourceCard, EXTRA_PER_WRONG - recipeCards.length, used);
+  const written = [...recipeCards, ...altCards];
+
+  // 3) The AI fills whatever is still needed.
   let aiCards = [];
   let aiProblem = '';
-  const needFromAI = EXTRA_PER_WRONG - recipeCards.length;
+  const needFromAI = EXTRA_PER_WRONG - written.length;
   if (needFromAI > 0) {
     try {
       const reply = await askWithTimeout(buildPrompt(sourceCard));
@@ -486,11 +527,11 @@ async function generateExtra(sourceCard) {
     }
   }
 
-  // 3) Last resort: simple sums done by code.
-  const stillMissing = EXTRA_PER_WRONG - recipeCards.length - aiCards.length;
+  // 4) Last resort: simple sums done by code.
+  const stillMissing = EXTRA_PER_WRONG - written.length - aiCards.length;
   const autoCards = stillMissing > 0 ? localVariations(sourceCard, stillMissing, used) : [];
 
-  return { extra: [...recipeCards, ...aiCards, ...autoCards], aiProblem };
+  return { extra: [...written, ...aiCards, ...autoCards], aiProblem };
 }
 
 async function focusOnWrong() {
@@ -503,8 +544,7 @@ async function focusOnWrong() {
   const requestId = ++generationSerial;
   const nextRound = round.value + 1;
   const newCards = [];
-  let aiCount = 0;
-  let autoCount = 0;
+  let practiceCount = 0;
   let shortCount = 0;   // wrong cards that got fewer than 3 extras
   let aiProblem = '';
 
@@ -519,9 +559,12 @@ async function focusOnWrong() {
         question: source.question,
         answer: source.answer,
         working: source.working,
+        ref: source.ref,
         difficulty: source.difficulty,
+        seconds: source.seconds,
         topic: source.topic,
         vary: source.vary,
+        alternates: source.alternates,
         source: source.source,
         isVariation: Boolean(source.isVariation),
       });
@@ -534,31 +577,32 @@ async function focusOnWrong() {
         newCards.push({
           ...variation,
           id: `${variation.source}-${nextRound}-${source.id}-${i + 1}`,
+          ref: source.ref,
           difficulty: source.difficulty,
+          seconds: source.seconds,
           topic: source.topic,
-          vary: source.vary, // so a variation you get wrong can be varied again
+          // Carry the recipe and alternates along, so a variation you get wrong can be varied again.
+          vary: source.vary,
+          alternates: source.alternates,
           isVariation: true,
         });
       });
 
-      aiCount += extra.filter(card => card.source === 'ai').length;
-      autoCount += extra.filter(card => card.source === 'auto').length;
+      practiceCount += extra.length;
       if (extra.length < EXTRA_PER_WRONG) shortCount += 1;
       if (problem) aiProblem = problem;
     }
 
     startRound(newCards, nextRound);
 
-    reviewNote.value = `Review round ${nextRound - 1}: ${incorrect.length} wrong card(s)`
-      + ` + ${aiCount} AI card(s) + ${autoCount} auto-made card(s) = ${newCards.length} cards.`;
+    reviewNote.value = `Review round ${nextRound - 1}: ${incorrect.length} card(s) you got wrong`
+      + ` + ${practiceCount} practice card(s) = ${newCards.length} cards.`;
 
+    // Students see a friendly line; the technical reason goes to the browser console for developers.
     if (shortCount > 0) {
-      generationError.value = `${shortCount} card(s) got fewer than ${EXTRA_PER_WRONG} extras`
-        + (aiProblem ? ` (${aiProblem})` : '') + '. '
-        + 'Fix: check askLLM() in src/shared/llm.js, or add a "vary" recipe to those cards in data/cards.js.';
-    } else if (aiProblem) {
-      generationError.value = `${aiProblem} — the page made the missing cards itself.`;
+      generationError.value = `${shortCount} card(s) don't have practice variations yet, so they're repeated on their own.`;
     }
+    if (aiProblem) console.warn(`[Flashcards] AI variations: ${aiProblem}. Check askLLM() in src/shared/llm.js.`);
   } catch (error) {
     console.error('Focus on wrong failed:', error);
     if (requestId === generationSerial) {
@@ -742,7 +786,7 @@ function ringOffset(percent) {
           <span class="pill">{{ currentCard.topic || 'Practice' }}</span>
           <span>Card {{ index + 1 }} / {{ total }}</span>
           <span v-if="currentCard.isVariation" class="pill pill-ai">
-            {{ currentCard.source === 'auto' ? '✦ Auto variation' : '✦ AI variation' }}
+            {{ variationLabel(currentCard.source) }}
           </span>
         </div>
 
@@ -765,6 +809,7 @@ function ringOffset(percent) {
                 <span v-if="currentCard.revealed && currentCard.working" class="card-working">
                   Working: {{ currentCard.working }}
                 </span>
+                <span v-if="currentCard.revealed && currentCard.ref" class="card-ref">Source: {{ currentCard.ref }}</span>
                 <span class="flip-hint">Click to see the question again ↻</span>
               </span>
             </button>
@@ -831,8 +876,8 @@ function ringOffset(percent) {
           {{ generatingText || 'Preparing review cards…' }} This may take a moment.
         </p>
         <p v-if="wrongCount > 0 && !generating" class="results-hint">
-          Focus on wrong gives you each wrong card again + {{ EXTRA_PER_WRONG }} new cards with different numbers
-          ({{ wrongCount * (EXTRA_PER_WRONG + 1) }} cards total).
+          Focus on wrong gives you each wrong card again + up to {{ EXTRA_PER_WRONG }} practice cards on the same idea
+          (new numbers, or the question asked another way).
         </p>
         <button type="button" class="nav-button back-to-syllabus" @click="goTo('syllabus')">← Back to syllabus</button>
       </div>
@@ -1158,6 +1203,7 @@ span.crumb { cursor: default; }
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
 }
+.card-ref { font-size: 0.75rem; color: var(--color-muted); font-style: italic; }
 .results-hint { margin: 0; color: var(--color-muted); font-size: 0.9rem; }
 
 .start-overlay {
