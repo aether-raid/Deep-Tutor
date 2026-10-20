@@ -150,20 +150,32 @@ const oComputing = {
   id: 'o-computing', name: 'Computing', short: 'CPT', syllabus: 'O Level Computing 7155 (2026)',
   topics: [
     { code: 'M1', name: 'Computing Fundamentals', subtopics: subs([
-      ['1.1', 'Computer Architecture'], ['1.2', 'Data Representation'], ['1.3', 'Logic Gates'],
+      ['1.1', 'Computer Architecture', { deck: 'o-cpt-1-1' }],
+      ['1.2', 'Data Representation', { deck: 'o-cpt-1-2' }],
+      ['1.3', 'Logic Gates', { deck: 'o-cpt-1-3' }],
     ]) },
     { code: 'M2', name: 'Algorithms and Programming', subtopics: subs([
-      ['2.1', 'Problem Analysis'], ['2.2', 'Constructs'], ['2.3', 'Python Code'],
-      ['2.4', 'Testing and Debugging'], ['2.5', 'Algorithm Design'], ['2.6', 'Software Engineering'],
+      ['2.1', 'Problem Analysis', { deck: 'o-cpt-2-1' }],
+      ['2.2', 'Constructs', { deck: 'o-cpt-2-2' }],
+      ['2.3', 'Python Code', { deck: 'o-cpt-2-3' }],
+      ['2.4', 'Testing and Debugging', { deck: 'o-cpt-2-4' }],
+      ['2.5', 'Algorithm Design', { deck: 'o-cpt-2-5' }],
+      ['2.6', 'Software Engineering', { deck: 'o-cpt-2-6' }],
     ]) },
     { code: 'M3', name: 'Spreadsheets', subtopics: subs([
-      ['3.1', 'Program Features'], ['3.2', 'Functions'],
+      ['3.1', 'Program Features', { deck: 'o-cpt-3-1' }],
+      ['3.2', 'Functions', { deck: 'o-cpt-3-2' }],
     ]) },
     { code: 'M4', name: 'Networking', subtopics: subs([
-      ['4.1', 'Concepts'], ['4.2', 'Home Networks and the Internet'], ['4.3', 'Security and Privacy'],
+      ['4.1', 'Concepts', { deck: 'o-cpt-4-1' }],
+      ['4.2', 'Home Networks and the Internet', { deck: 'o-cpt-4-2' }],
+      ['4.3', 'Security and Privacy', { deck: 'o-cpt-4-3' }],
     ]) },
     { code: 'M5', name: 'Impact of Computing', subtopics: subs([
-      ['5.1', 'General'], ['5.2', 'Intellectual Property'], ['5.3', 'Communication'], ['5.4', 'Emerging Technologies'],
+      ['5.1', 'General', { deck: 'o-cpt-5-1' }],
+      ['5.2', 'Intellectual Property', { deck: 'o-cpt-5-2' }],
+      ['5.3', 'Communication', { deck: 'o-cpt-5-3' }],
+      ['5.4', 'Emerging Technologies', { deck: 'o-cpt-5-4' }],
     ]) },
   ],
 };

@@ -10,6 +10,7 @@
 //   decks/a-h2-computing-1.js  A Level H2 Computing — Module 1 Programming Fundamentals
 //   decks/o-level-math.js   O Level Mathematics 4052 — N1–N9, G1–G7, S1–S2
 //   decks/o-level-amath.js  O Level Additional Mathematics 4049 — A1–A6, G1–G3, C1
+//   decks/o-level-computing.js  O Level Computing 7155 — M1–M5 (all 18 sub-topics)
 //
 // Each deck is linked to a syllabus sub-topic in data/syllabus.js through its key
 // (for example deck: 'ib-cs-a1-1'). A sub-topic with a deck shows GREEN (ready);
@@ -25,6 +26,7 @@ import { h2MathDecks } from './decks/a-h2-math-1-2.js';
 import { h2ComputingDecks } from './decks/a-h2-computing-1.js';
 import { oLevelMathDecks } from './decks/o-level-math.js';
 import { oLevelAMathDecks } from './decks/o-level-amath.js';
+import { oLevelComputingDecks } from './decks/o-level-computing.js';
 
 // Seconds allowed per card, by difficulty.
 export const TIME_LIMITS = {
@@ -42,4 +44,5 @@ export const decks = {
   ...h2ComputingDecks,
   ...oLevelMathDecks,
   ...oLevelAMathDecks,
+  ...oLevelComputingDecks,
 };
