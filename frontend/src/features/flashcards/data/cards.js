@@ -40,6 +40,11 @@ function withCommas(n) {
   return n.toLocaleString('en-US');
 }
 
+// "a" or "an" for the word or number that follows: aOrAn('80 m') → "an", aOrAn('octagon') → "an"
+function aOrAn(next) {
+  return /^([aeiou]|8|11(\D|$)|18(\D|$))/i.test(String(next)) ? 'an' : 'a';
+}
+
 // Picks one item from a list using the random helper.
 function pick(rand, list) {
   return list[rand(0, list.length - 1)];
@@ -1459,7 +1464,7 @@ const oMathN3 = deck('N3 Percentage', [
         return {
           question: `A price is ${steps}. What is the overall percentage change?`,
           answer,
-          working: `${factors} = ${finalPercent / 100} → ${finalPercent}% of the original${change === 0 ? '' : `, a ${answer}`}`,
+          working: `${factors} = ${finalPercent / 100} → ${finalPercent}% of the original${change === 0 ? '' : `, ${aOrAn(answer)} ${answer}`}`,
         };
       },
     },
@@ -1734,7 +1739,7 @@ const oMathN4 = deck('N4 Rate and speed', [
         const whole = Math.floor(halfMinutes / 2);
         const answer = halfMinutes % 2 === 0 ? `${whole} min` : `${whole} min 30 s`;
         return {
-          question: `A pipe fills a ${litres}-litre tank at ${rate} litres per minute. How long does it take to fill the tank?`,
+          question: `A pipe fills ${aOrAn(litres)} ${litres}-litre tank at ${rate} litres per minute. How long does it take to fill the tank?`,
           answer,
           working: `Time = ${litres} ÷ ${rate} = ${halfMinutes / 2} min${halfMinutes % 2 === 0 ? '' : ` = ${answer}`}`,
         };
@@ -2210,7 +2215,7 @@ const oMathN6 = deck('N6 Functions and graphs', [
         return {
           question: `Given f(x) = ${poly([[a, 'x'], [b, '']])}, find f(${signed(x)}).`,
           answer: signed(a * x + b),
-          working: `f(${signed(x)}) = ${a}(${signed(x)})${plusMinus(b)} = ${signed(a * x)}${plusMinus(b)} = ${signed(a * x + b)}`,
+          working: `f(${signed(x)}) = ${signed(a)}(${signed(x)})${plusMinus(b)} = ${signed(a * x)}${plusMinus(b)} = ${signed(a * x + b)}`,
         };
       },
     },
@@ -3161,10 +3166,2135 @@ const oMathN9 = deck('N9 Matrices', [
         return {
           question: `Find k if\nk ×\n${matrixText(M)}\n=\n${matrixText(M.map(r => r.map(v => k * v)))}`,
           answer: `k = ${signed(k)}`,
-          working: `Compare any non-zero element: ${signed(M[0][0])}k = ${signed(k * M[0][0])} → k = ${signed(k)}`,
+          working: `Compare any non-zero element: ${poly([[M[0][0], 'k']])} = ${signed(k * M[0][0])} → k = ${signed(k)}`,
         };
       },
     },
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — G1 Angles, triangles and polygons ----------
+
+// Numbers of sides whose exterior angle (360 ÷ n) is a whole number.
+const REGULAR_SIDES = [5, 6, 8, 9, 10, 12, 15, 18, 20, 24, 30, 36];
+
+// An angle written as algebra, e.g. "(2x + 10)°"
+function angleExpr(a, b) {
+  return `(${poly([[a, 'x'], [b, '']])})°`;
+}
+
+const oMathG1 = deck('G1 Angles, triangles and polygons', [
+  {
+    id: 'g1-01', difficulty: 'easy',
+    question: 'Two angles on a straight line are (2x + 10)° and (3x − 20)°. Find x.',
+    answer: 'x = 38',
+    working: 'Angles on a straight line add up to 180°: 5x − 10 = 180 → 5x = 190 → x = 38',
+    vary: {
+      make: rand => {
+        let x, a, b, c, d;
+        do {
+          [x, a, c, b] = [rand(10, 40), rand(1, 4), rand(1, 4), rand(-20, 30)];
+          d = 180 - (a + c) * x - b;
+        } while (a * x + b < 10 || c * x + d < 10 || d === 0 || b === 0);
+        return {
+          question: `Two angles on a straight line are ${angleExpr(a, b)} and ${angleExpr(c, d)}. Find x.`,
+          answer: `x = ${x}`,
+          working: `Angles on a straight line add up to 180°: ${poly([[a + c, 'x'], [b + d, '']])} = 180 → ${poly([[a + c, 'x']])} = ${180 - b - d} → x = ${x}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-02', difficulty: 'easy',
+    question: 'Four angles meet at a point: 110°, 95°, 70° and x°. Find x.',
+    answer: 'x = 85',
+    working: 'Angles at a point add up to 360°: 360 − 110 − 95 − 70 = 85',
+    vary: {
+      make: rand => {
+        let p, q, r, x;
+        do {
+          [p, q, r] = [rand(40, 150), rand(40, 150), rand(30, 120)];
+          x = 360 - p - q - r;
+        } while (x < 20 || x > 170);
+        return {
+          question: `Four angles meet at a point: ${p}°, ${q}°, ${r}° and x°. Find x.`,
+          answer: `x = ${x}`,
+          working: `Angles at a point add up to 360°: 360 − ${p} − ${q} − ${r} = ${x}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-03', difficulty: 'medium',
+    question: 'Two parallel lines are cut by a transversal. A pair of co-interior angles are 3x° and (2x + 30)°. Find x.',
+    answer: 'x = 30',
+    working: 'Co-interior angles add up to 180°: 5x + 30 = 180 → x = 30',
+    vary: {
+      make: rand => {
+        const type = pick(rand, ['alternate', 'corresponding', 'co-interior']);
+        let x, a, b, c, d;
+        do {
+          [x, a, c, b] = [rand(5, 40), rand(1, 5), rand(1, 5), rand(-30, 40)];
+          d = type === 'co-interior' ? 180 - (a + c) * x - b : (a - c) * x + b;
+        } while (a === c || a * x + b < 10 || c * x + d < 10 || a * x + b > 170 || c * x + d > 170);
+        const rule = type === 'co-interior'
+          ? `Co-interior angles add up to 180°: ${poly([[a + c, 'x'], [b + d, '']])} = 180`
+          : `${type === 'alternate' ? 'Alternate' : 'Corresponding'} angles are equal: ${poly([[a, 'x'], [b, '']])} = ${poly([[c, 'x'], [d, '']])}`;
+        return {
+          question: `Two parallel lines are cut by a transversal. A pair of ${type} angles are ${angleExpr(a, b)} and ${angleExpr(c, d)}. Find x.`,
+          answer: `x = ${x}`,
+          working: `${rule} → x = ${x}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-04', difficulty: 'easy',
+    question: 'Two angles of a triangle are 48° and 67°. Find the third angle.',
+    answer: '65°',
+    working: 'Angles in a triangle add up to 180°: 180 − 48 − 67 = 65°',
+    vary: {
+      make: rand => {
+        const p = rand(20, 110);
+        const q = rand(20, 160 - p);
+        return {
+          question: `Two angles of a triangle are ${p}° and ${q}°. Find the third angle.`,
+          answer: `${180 - p - q}°`,
+          working: `Angles in a triangle add up to 180°: 180 − ${p} − ${q} = ${180 - p - q}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-05', difficulty: 'medium',
+    question: 'An exterior angle of a triangle is 125°. One of the interior opposite angles is 70°. Find the other interior opposite angle.',
+    answer: '55°',
+    working: 'Exterior angle = sum of the two interior opposite angles → 125 − 70 = 55°',
+    vary: {
+      make: rand => {
+        const p = rand(20, 90);
+        const q = rand(20, 90);
+        return {
+          question: `An exterior angle of a triangle is ${p + q}°. One of the interior opposite angles is ${p}°. Find the other interior opposite angle.`,
+          answer: `${q}°`,
+          working: `Exterior angle = sum of the two interior opposite angles → ${p + q} − ${p} = ${q}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-06', difficulty: 'easy',
+    question: 'An isosceles triangle has an angle of 40° between its two equal sides. Find each of the other two angles.',
+    answer: '70° each',
+    working: 'The base angles are equal: (180 − 40) ÷ 2 = 70°',
+    vary: {
+      make: rand => {
+        if (rand(0, 1) === 1) {
+          const apex = 2 * rand(10, 70);
+          return {
+            question: `An isosceles triangle has an angle of ${apex}° between its two equal sides. Find each of the other two angles.`,
+            answer: `${(180 - apex) / 2}° each`,
+            working: `The base angles are equal: (180 − ${apex}) ÷ 2 = ${(180 - apex) / 2}°`,
+          };
+        }
+        const base = rand(20, 85);
+        return {
+          question: `The two base angles of an isosceles triangle are each ${base}°. Find the third angle.`,
+          answer: `${180 - 2 * base}°`,
+          working: `180 − 2 × ${base} = ${180 - 2 * base}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-07', difficulty: 'easy',
+    question: 'Find the sum of the interior angles of a hexagon.',
+    answer: '720°',
+    working: '(n − 2) × 180° = (6 − 2) × 180° = 720°',
+    vary: {
+      make: rand => {
+        const names = { 5: 'pentagon', 6: 'hexagon', 7: 'heptagon', 8: 'octagon', 9: 'nonagon', 10: 'decagon', 12: '12-sided polygon', 15: '15-sided polygon', 20: '20-sided polygon' };
+        const n = pick(rand, [5, 6, 7, 8, 9, 10, 12, 15, 20]);
+        return {
+          question: `Find the sum of the interior angles of ${aOrAn(names[n])} ${names[n]}.`,
+          answer: `${withCommas((n - 2) * 180)}°`,
+          working: `(n − 2) × 180° = (${n} − 2) × 180° = ${withCommas((n - 2) * 180)}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-08', difficulty: 'medium',
+    question: 'Find the size of each interior angle of a regular 12-sided polygon.',
+    answer: '150°',
+    working: 'Each exterior angle = 360 ÷ 12 = 30° → interior = 180 − 30 = 150°',
+    vary: {
+      make: rand => {
+        const n = pick(rand, REGULAR_SIDES);
+        return {
+          question: `Find the size of each interior angle of a regular ${n}-sided polygon.`,
+          answer: `${180 - 360 / n}°`,
+          working: `Each exterior angle = 360 ÷ ${n} = ${360 / n}° → interior = 180 − ${360 / n} = ${180 - 360 / n}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-09', difficulty: 'medium',
+    question: 'Each exterior angle of a regular polygon is 24°. How many sides does it have?',
+    answer: '15',
+    working: 'Exterior angles add up to 360°: 360 ÷ 24 = 15',
+    vary: {
+      make: rand => {
+        const n = pick(rand, REGULAR_SIDES);
+        return {
+          question: `Each exterior angle of a regular polygon is ${360 / n}°. How many sides does it have?`,
+          answer: String(n),
+          working: `Exterior angles add up to 360°: 360 ÷ ${360 / n} = ${n}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-10', difficulty: 'hard',
+    question: 'Each interior angle of a regular polygon is 156°. How many sides does it have?',
+    answer: '15',
+    working: 'Exterior angle = 180 − 156 = 24° → 360 ÷ 24 = 15',
+    vary: {
+      make: rand => {
+        const n = pick(rand, REGULAR_SIDES);
+        const interior = 180 - 360 / n;
+        return {
+          question: `Each interior angle of a regular polygon is ${interior}°. How many sides does it have?`,
+          answer: String(n),
+          working: `Exterior angle = 180 − ${interior} = ${360 / n}° → 360 ÷ ${360 / n} = ${n}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-11', difficulty: 'hard',
+    question: 'The interior angles of a pentagon are 100°, 110°, 120°, x° and x°. Find x.',
+    answer: 'x = 105',
+    working: 'Sum = (5 − 2) × 180 = 540° → 2x = 540 − 330 = 210 → x = 105',
+    vary: {
+      make: rand => {
+        const n = pick(rand, [5, 6]);
+        const total = (n - 2) * 180;
+        let known, x;
+        do {
+          x = rand(80, 160);
+          known = Array.from({ length: n - 3 }, () => rand(70, 170));
+          known.push(total - 2 * x - known.reduce((s, v) => s + v, 0));
+        } while (known[known.length - 1] < 60 || known[known.length - 1] > 175);
+        const knownSum = known.reduce((s, v) => s + v, 0);
+        return {
+          question: `The interior angles of a ${n === 5 ? 'pentagon' : 'hexagon'} are ${known.map(v => `${v}°`).join(', ')}, x° and x°. Find x.`,
+          answer: `x = ${x}`,
+          working: `Sum = (${n} − 2) × 180 = ${total}° → 2x = ${total} − ${knownSum} = ${2 * x} → x = ${x}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-12', difficulty: 'medium',
+    question: 'Which quadrilateral has all four sides equal and diagonals that bisect each other at right angles, but its angles are not all 90°?',
+    answer: 'A rhombus',
+    vary: {
+      make: rand => {
+        const [clue, shape] = pick(rand, [
+          ['all four sides equal and diagonals that bisect each other at right angles, but its angles are not all 90°', 'A rhombus'],
+          ['two pairs of parallel sides, opposite sides equal, but its angles are not all 90° and its sides are not all equal', 'A parallelogram'],
+          ['exactly one pair of parallel sides', 'A trapezium'],
+          ['two pairs of equal adjacent sides and one line of symmetry, with diagonals that cross at right angles', 'A kite'],
+          ['four right angles and diagonals that are equal in length, but its sides are not all equal', 'A rectangle'],
+          ['four equal sides, four right angles and four lines of symmetry', 'A square'],
+        ]);
+        return { question: `Which quadrilateral has ${clue}?`, answer: shape, working: '' };
+      },
+    },
+  },
+  {
+    id: 'g1-13', difficulty: 'easy',
+    question: 'Two straight lines cross. One angle is (x + 20)° and the vertically opposite angle is (3x − 40)°. Find x.',
+    answer: 'x = 30',
+    working: 'Vertically opposite angles are equal: x + 20 = 3x − 40 → 2x = 60 → x = 30',
+    vary: {
+      make: rand => {
+        let x, a, b, c, d;
+        do {
+          [x, a, c, b] = [rand(5, 40), rand(1, 5), rand(1, 5), rand(-30, 40)];
+          d = (a - c) * x + b;
+        } while (a === c || a * x + b < 10 || a * x + b > 170 || b === 0 || d === 0);
+        return {
+          question: `Two straight lines cross. One angle is ${angleExpr(a, b)} and the vertically opposite angle is ${angleExpr(c, d)}. Find x.`,
+          answer: `x = ${x}`,
+          working: `Vertically opposite angles are equal: ${poly([[a, 'x'], [b, '']])} = ${poly([[c, 'x'], [d, '']])} → x = ${x}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g1-14', difficulty: 'easy',
+    question: 'With parallel lines cut by a transversal, which angle pairs are equal and which add up to 180°?',
+    answer: 'Equal: corresponding angles ("F" shape) and alternate angles ("Z" shape).\nAdd up to 180°: co-interior angles ("C" or "U" shape).',
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — G2 Congruence and similarity ----------
+
+const oMathG2 = deck('G2 Congruence and similarity', [
+  {
+    id: 'g2-01', difficulty: 'easy',
+    question: 'State the four tests for congruent triangles.',
+    answer: 'SSS: three pairs of equal sides.\nSAS: two sides and the angle between them.\nASA or AAS: two angles and one matching side.\nRHS: right angle, hypotenuse and one other side.',
+  },
+  {
+    id: 'g2-02', difficulty: 'easy',
+    question: 'What is the difference between congruent and similar figures?',
+    answer: 'Congruent: exactly the same shape AND size.\nSimilar: the same shape (equal angles, sides in the same ratio) but possibly a different size.',
+  },
+  {
+    id: 'g2-03', difficulty: 'medium',
+    question: 'Two triangles are similar. Which conditions prove this?',
+    answer: 'Any one of: two pairs of equal angles (AA); all three pairs of sides in the same ratio; two pairs of sides in the same ratio with the angles between them equal.',
+  },
+  {
+    id: 'g2-04', difficulty: 'medium',
+    question: 'Triangle ABC is similar to triangle DEF. AB = 6 cm, DE = 9 cm and BC = 8 cm. Find EF.',
+    answer: '12 cm',
+    working: 'Scale factor = 9 ÷ 6 = 1.5 → EF = 8 × 1.5 = 12 cm',
+    vary: {
+      make: rand => {
+        const [p, q] = ratioPair(rand);
+        const t = rand(1, 5);
+        const s = rand(1, 5) + (rand(0, 1) ? 0 : 1);
+        return {
+          question: `Triangle ABC is similar to triangle DEF. AB = ${p * t} cm, DE = ${q * t} cm and BC = ${p * s} cm. Find EF.`,
+          answer: `${q * s} cm`,
+          working: `Scale factor = ${q * t} ÷ ${p * t} = ${q}/${p} → EF = ${p * s} × ${q}/${p} = ${q * s} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-05', difficulty: 'medium',
+    question: 'A triangle has sides 4 cm, 6 cm and 7 cm. A similar triangle has its longest side 21 cm. Find its shortest side.',
+    answer: '12 cm',
+    working: 'Scale factor = 21 ÷ 7 = 3 → 4 × 3 = 12 cm',
+    vary: {
+      make: rand => {
+        let sides;
+        do { sides = [rand(3, 9), rand(3, 9), rand(3, 9)].sort((x, y) => x - y); } while (sides[0] + sides[1] <= sides[2] || sides[0] === sides[2]);
+        const k = rand(2, 5);
+        return {
+          question: `A triangle has sides ${sides[0]} cm, ${sides[1]} cm and ${sides[2]} cm. A similar triangle has its longest side ${sides[2] * k} cm. Find its shortest side.`,
+          answer: `${sides[0] * k} cm`,
+          working: `Scale factor = ${sides[2] * k} ÷ ${sides[2]} = ${k} → ${sides[0]} × ${k} = ${sides[0] * k} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-06', difficulty: 'medium',
+    question: 'Two similar triangles have corresponding sides in the ratio 3 : 5. The smaller triangle has an area of 18 cm². Find the area of the larger triangle.',
+    answer: '50 cm²',
+    working: 'Area ratio = 3² : 5² = 9 : 25 → 18 ÷ 9 × 25 = 50 cm²',
+    vary: {
+      make: rand => {
+        const [p, q] = pick(rand, COPRIME_PAIRS);
+        const m = rand(1, 6);
+        return {
+          question: `Two similar triangles have corresponding sides in the ratio ${p} : ${q}. The smaller triangle has an area of ${m * p * p} cm². Find the area of the larger triangle.`,
+          answer: `${m * q * q} cm²`,
+          working: `Area ratio = ${p}² : ${q}² = ${p * p} : ${q * q} → ${m * p * p} ÷ ${p * p} × ${q * q} = ${m * q * q} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-07', difficulty: 'hard',
+    question: 'Two similar cones have heights 4 cm and 6 cm. The smaller cone has a volume of 32 cm³. Find the volume of the larger cone.',
+    answer: '108 cm³',
+    working: 'Volume ratio = 4³ : 6³ = 64 : 216 → 32 ÷ 64 × 216 = 108 cm³',
+    vary: {
+      make: rand => {
+        const [p, q] = pick(rand, COPRIME_PAIRS.filter(([, b]) => b <= 6));
+        const t = rand(1, 2);
+        const m = rand(1, 5);
+        const shape = pick(rand, ['cones', 'cylinders', 'bottles', 'pyramids']);
+        return {
+          question: `Two similar ${shape} have heights ${p * t} cm and ${q * t} cm. The smaller one has a volume of ${m * p ** 3} cm³. Find the volume of the larger one.`,
+          answer: `${withCommas(m * q ** 3)} cm³`,
+          working: `Volume ratio = ${p}³ : ${q}³ = ${p ** 3} : ${q ** 3} → ${m * p ** 3} ÷ ${p ** 3} × ${q ** 3} = ${withCommas(m * q ** 3)} cm³`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-08', difficulty: 'hard',
+    question: 'Two similar solids have masses of 80 g and 270 g. The larger solid is 12 cm tall. How tall is the smaller solid?',
+    answer: '8 cm',
+    working: 'Mass ratio = volume ratio = 80 : 270 = 8 : 27 → length ratio = ∛8 : ∛27 = 2 : 3 → 12 × 2/3 = 8 cm',
+    vary: {
+      make: rand => {
+        const [p, q] = pick(rand, COPRIME_PAIRS.filter(([, b]) => b <= 5));
+        const m = rand(2, 10);
+        const t = rand(2, 6);
+        return {
+          question: `Two similar solids have masses of ${m * p ** 3} g and ${m * q ** 3} g. The larger solid is ${q * t} cm tall. How tall is the smaller solid?`,
+          answer: `${p * t} cm`,
+          working: `Mass ratio = volume ratio = ${p ** 3} : ${q ** 3} → length ratio = ${p} : ${q} → ${q * t} × ${p}/${q} = ${p * t} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-09', difficulty: 'hard',
+    question: 'Two similar solids have volumes 64 cm³ and 125 cm³. The surface area of the smaller one is 48 cm². Find the surface area of the larger one.',
+    answer: '75 cm²',
+    working: 'Length ratio = ∛64 : ∛125 = 4 : 5 → area ratio = 16 : 25 → 48 ÷ 16 × 25 = 75 cm²',
+    vary: {
+      make: rand => {
+        const [p, q] = pick(rand, COPRIME_PAIRS.filter(([, b]) => b <= 6));
+        const v = rand(1, 3);
+        const s = rand(1, 6);
+        return {
+          question: `Two similar solids have volumes ${v * p ** 3} cm³ and ${v * q ** 3} cm³. The surface area of the smaller one is ${s * p * p} cm². Find the surface area of the larger one.`,
+          answer: `${s * q * q} cm²`,
+          working: `Length ratio = ${p} : ${q} (cube roots of the volume ratio ${p ** 3} : ${q ** 3}) → area ratio = ${p * p} : ${q * q} → ${s * p * p} ÷ ${p * p} × ${q * q} = ${s * q * q} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-10', difficulty: 'medium',
+    question: 'A 2 m pole casts a 3 m shadow. At the same time, a tree casts a 15 m shadow. How tall is the tree?',
+    answer: '10 m',
+    working: 'Similar triangles: height/shadow is the same → 2/3 × 15 = 10 m',
+    vary: {
+      make: rand => {
+        const [p, q] = ratioPair(rand);
+        const k = rand(2, 8);
+        return {
+          question: `A ${p} m pole casts ${aOrAn(q)} ${q} m shadow. At the same time, a tree casts ${aOrAn(q * k)} ${q * k} m shadow. How tall is the tree?`,
+          answer: `${p * k} m`,
+          working: `Similar triangles: height/shadow is the same → ${p}/${q} × ${q * k} = ${p * k} m`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-11', difficulty: 'medium',
+    question: 'A shape with area 5 cm² is enlarged with scale factor 3. Find the area of the image.',
+    answer: '45 cm²',
+    working: 'Area scale factor = 3² = 9 → 5 × 9 = 45 cm²',
+    vary: {
+      make: rand => {
+        const k = rand(2, 5);
+        const area = rand(2, 12);
+        return {
+          question: `A shape with area ${area} cm² is enlarged with scale factor ${k}. Find the area of the image.`,
+          answer: `${area * k * k} cm²`,
+          working: `Area scale factor = ${k}² = ${k * k} → ${area} × ${k * k} = ${area * k * k} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g2-12', difficulty: 'medium',
+    question: 'In triangles ABC and PQR, AB = PQ, BC = QR and angle ABC = angle PQR. Which congruence test proves they are congruent?',
+    answer: 'SAS',
+    working: 'Two sides and the angle between them (angle B is between AB and BC)',
+    vary: {
+      make: rand => {
+        const [facts, test, why] = pick(rand, [
+          ['AB = PQ, BC = QR and angle ABC = angle PQR', 'SAS', 'Two sides and the angle between them'],
+          ['AB = PQ, BC = QR and AC = PR', 'SSS', 'All three pairs of sides are equal'],
+          ['angle A = angle P, angle B = angle Q and AB = PQ', 'ASA', 'Two angles and the side between them'],
+          ['angle A = angle P, angle B = angle Q and BC = QR', 'AAS', 'Two angles and a side that is not between them'],
+          ['angle C = angle R = 90°, AB = PQ and AC = PR', 'RHS', 'Right angle, equal hypotenuses (AB, PQ) and one other pair of sides'],
+        ]);
+        return {
+          question: `In triangles ABC and PQR, ${facts}. Which congruence test proves they are congruent?`,
+          answer: test,
+          working: why,
+        };
+      },
+    },
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — G3 Properties of circles ----------
+
+// Pythagorean triples (scaled ones are made with a multiplier).
+const TRIPLES = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29], [9, 40, 41]];
+
+const oMathG3 = deck('G3 Properties of circles', [
+  {
+    id: 'g3-01', difficulty: 'easy',
+    question: 'State the main angle properties of circles.',
+    answer: 'The angle in a semicircle is 90°.\nThe angle at the centre is twice the angle at the circumference (same arc).\nAngles in the same segment are equal.\nOpposite angles of a cyclic quadrilateral add up to 180°.',
+  },
+  {
+    id: 'g3-02', difficulty: 'easy',
+    question: 'State the main symmetry and tangent properties of circles.',
+    answer: 'A tangent is perpendicular to the radius at the point of contact.\nTwo tangents from an outside point are equal in length.\nThe perpendicular from the centre to a chord bisects the chord.\nEqual chords are the same distance from the centre.',
+  },
+  {
+    id: 'g3-03', difficulty: 'easy',
+    question: 'A, B and C lie on a circle with centre O. Angle ACB = 35°. Find angle AOB.',
+    answer: '70°',
+    working: 'Angle at the centre = 2 × angle at the circumference → 2 × 35 = 70°',
+    vary: {
+      make: rand => {
+        const c = rand(15, 85);
+        if (rand(0, 1) === 1) {
+          return {
+            question: `A, B and C lie on a circle with centre O. Angle ACB = ${c}°. Find angle AOB.`,
+            answer: `${2 * c}°`,
+            working: `Angle at the centre = 2 × angle at the circumference → 2 × ${c} = ${2 * c}°`,
+          };
+        }
+        return {
+          question: `A, B and C lie on a circle with centre O. Angle AOB = ${2 * c}°. Find angle ACB.`,
+          answer: `${c}°`,
+          working: `Angle at the circumference = half the angle at the centre → ${2 * c} ÷ 2 = ${c}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-04', difficulty: 'medium',
+    question: 'AB is a diameter of a circle and C is a point on the circle. Angle CAB = 32°. Find angle ABC.',
+    answer: '58°',
+    working: 'Angle ACB = 90° (angle in a semicircle) → 180 − 90 − 32 = 58°',
+    vary: {
+      make: rand => {
+        const a = rand(15, 75);
+        return {
+          question: `AB is a diameter of a circle and C is a point on the circle. Angle CAB = ${a}°. Find angle ABC.`,
+          answer: `${90 - a}°`,
+          working: `Angle ACB = 90° (angle in a semicircle) → 180 − 90 − ${a} = ${90 - a}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-05', difficulty: 'easy',
+    question: 'ABCD is a cyclic quadrilateral. Angle ABC = 104°. Find angle ADC.',
+    answer: '76°',
+    working: 'Opposite angles of a cyclic quadrilateral add up to 180° → 180 − 104 = 76°',
+    vary: {
+      make: rand => {
+        const b = rand(50, 140);
+        return {
+          question: `ABCD is a cyclic quadrilateral. Angle ABC = ${b}°. Find angle ADC.`,
+          answer: `${180 - b}°`,
+          working: `Opposite angles of a cyclic quadrilateral add up to 180° → 180 − ${b} = ${180 - b}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-06', difficulty: 'easy',
+    question: 'A, B, C and D lie on a circle. Angle ACB = 40°. Find angle ADB (C and D are on the same side of AB).',
+    answer: '40°',
+    working: 'Angles in the same segment (standing on the same arc AB) are equal',
+    vary: {
+      make: rand => {
+        const c = rand(20, 80);
+        return {
+          question: `A, B, C and D lie on a circle. Angle ACB = ${c}°. Find angle ADB (C and D are on the same side of AB).`,
+          answer: `${c}°`,
+          working: 'Angles in the same segment (standing on the same arc AB) are equal',
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-07', difficulty: 'medium',
+    question: 'A tangent from point P touches a circle, centre O, at T. OT = 5 cm and OP = 13 cm. Find PT.',
+    answer: '12 cm',
+    working: 'Angle OTP = 90° (tangent ⟂ radius) → PT = √(13² − 5²) = √144 = 12 cm',
+    vary: {
+      make: rand => {
+        const [a, b, c] = pick(rand, TRIPLES.slice(0, 4));
+        const k = rand(1, 3);
+        const [r, t] = rand(0, 1) ? [a * k, b * k] : [b * k, a * k];
+        return {
+          question: `A tangent from point P touches a circle, centre O, at T. OT = ${r} cm and OP = ${c * k} cm. Find PT.`,
+          answer: `${t} cm`,
+          working: `Angle OTP = 90° (tangent ⟂ radius) → PT = √(${c * k}² − ${r}²) = √${t * t} = ${t} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-08', difficulty: 'hard',
+    question: 'PA and PB are tangents to a circle with centre O. Angle APB = 50°. Find angle AOB.',
+    answer: '130°',
+    working: 'Angles OAP and OBP are 90° (tangent ⟂ radius). Angles in quadrilateral OAPB add up to 360° → 360 − 90 − 90 − 50 = 130°',
+    vary: {
+      make: rand => {
+        const p = rand(20, 120);
+        return {
+          question: `PA and PB are tangents to a circle with centre O. Angle APB = ${p}°. Find angle AOB.`,
+          answer: `${180 - p}°`,
+          working: `Angles OAP and OBP are 90° (tangent ⟂ radius). Angles in quadrilateral OAPB add up to 360° → 360 − 90 − 90 − ${p} = ${180 - p}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-09', difficulty: 'hard',
+    question: 'A circle has radius 10 cm. A chord is 16 cm long. How far is the chord from the centre?',
+    answer: '6 cm',
+    working: 'The perpendicular from the centre bisects the chord: half-chord = 8 → √(10² − 8²) = √36 = 6 cm',
+    vary: {
+      make: rand => {
+        const [a, b, c] = pick(rand, TRIPLES.slice(0, 4));
+        const k = rand(1, 2);
+        const [half, d] = rand(0, 1) ? [a * k, b * k] : [b * k, a * k];
+        return {
+          question: `A circle has radius ${c * k} cm. A chord is ${2 * half} cm long. How far is the chord from the centre?`,
+          answer: `${d} cm`,
+          working: `The perpendicular from the centre bisects the chord: half-chord = ${half} → √(${c * k}² − ${half}²) = √${d * d} = ${d} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-10', difficulty: 'medium',
+    question: 'A and B lie on a circle with centre O. Angle OAB = 28°. Find angle AOB.',
+    answer: '124°',
+    working: 'OA = OB (radii), so triangle OAB is isosceles: angle OBA = 28° → 180 − 2 × 28 = 124°',
+    vary: {
+      make: rand => {
+        const a = rand(15, 80);
+        return {
+          question: `A and B lie on a circle with centre O. Angle OAB = ${a}°. Find angle AOB.`,
+          answer: `${180 - 2 * a}°`,
+          working: `OA = OB (radii), so triangle OAB is isosceles: angle OBA = ${a}° → 180 − 2 × ${a} = ${180 - 2 * a}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g3-11', difficulty: 'hard',
+    question: 'A, B and C lie on a circle with centre O. Angle AOB = 110°. Find the angle ACB when C is on the major arc, and when C is on the minor arc.',
+    answer: 'Major arc: 55°. Minor arc: 125°.',
+    working: 'Major arc: 110 ÷ 2 = 55°. Minor arc: the reflex angle AOB is 360 − 110 = 250°, so ACB = 250 ÷ 2 = 125° (also 180 − 55, cyclic quadrilateral)',
+    vary: {
+      make: rand => {
+        const o = 2 * rand(20, 80);
+        return {
+          question: `A, B and C lie on a circle with centre O. Angle AOB = ${o}°. Find the angle ACB when C is on the major arc, and when C is on the minor arc.`,
+          answer: `Major arc: ${o / 2}°. Minor arc: ${180 - o / 2}°.`,
+          working: `Major arc: ${o} ÷ 2 = ${o / 2}°. Minor arc: the reflex angle AOB is 360 − ${o} = ${360 - o}°, so ACB = ${360 - o} ÷ 2 = ${180 - o / 2}° (also 180 − ${o / 2}, cyclic quadrilateral)`,
+        };
+      },
+    },
+  },
+]);
+
+// ---------- Rounding helpers (used by G4 – S2) ----------
+
+// 3 significant figures: 21.0123 → "21.0"   1234.5 → "1,230"
+function sf3(n) {
+  const rounded = Number(n.toPrecision(3));
+  return Math.abs(rounded) >= 1000 ? withCommas(rounded) : n.toPrecision(3).replace('-', '−');
+}
+
+// 1 decimal place: 36.869 → "36.9"
+function dp1(n) {
+  return n.toFixed(1).replace('-', '−');
+}
+
+const toRadians = degrees => (degrees * Math.PI) / 180;
+const toDegrees = radians => (radians * 180) / Math.PI;
+
+// ---------- O Level Mathematics 4052 — G4 Pythagoras' theorem and trigonometry ----------
+
+const oMathG4 = deck("G4 Pythagoras' theorem and trigonometry", [
+  {
+    id: 'g4-01', difficulty: 'easy',
+    question: 'A right-angled triangle has shorter sides 9 cm and 12 cm. Find the hypotenuse.',
+    answer: '15 cm',
+    working: '√(9² + 12²) = √225 = 15 cm',
+    vary: {
+      make: rand => {
+        const [a, b, c] = pick(rand, TRIPLES);
+        const k = c >= 25 ? 1 : rand(1, 3);
+        return {
+          question: `A right-angled triangle has shorter sides ${a * k} cm and ${b * k} cm. Find the hypotenuse.`,
+          answer: `${c * k} cm`,
+          working: `√(${a * k}² + ${b * k}²) = √${withCommas((c * k) ** 2)} = ${c * k} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-02', difficulty: 'easy',
+    question: 'A right-angled triangle has hypotenuse 26 cm and one side 10 cm. Find the third side.',
+    answer: '24 cm',
+    working: '√(26² − 10²) = √576 = 24 cm',
+    vary: {
+      make: rand => {
+        const [a, b, c] = pick(rand, TRIPLES);
+        const k = c >= 25 ? 1 : rand(1, 3);
+        const [known, missing] = rand(0, 1) ? [a * k, b * k] : [b * k, a * k];
+        return {
+          question: `A right-angled triangle has hypotenuse ${c * k} cm and one side ${known} cm. Find the third side.`,
+          answer: `${missing} cm`,
+          working: `√(${c * k}² − ${known}²) = √${withCommas(missing * missing)} = ${missing} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-03', difficulty: 'medium',
+    question: 'A triangle has sides 7 cm, 24 cm and 25 cm. Is it right-angled?',
+    answer: 'Yes',
+    working: '7² + 24² = 49 + 576 = 625 = 25² → yes (converse of Pythagoras)',
+    vary: {
+      make: rand => {
+        const [a, b, c0] = pick(rand, TRIPLES);
+        const right = rand(0, 1) === 1;
+        const c = right ? c0 : c0 + pick(rand, [-1, 1]);
+        const lhs = a * a + b * b;
+        return {
+          question: `A triangle has sides ${a} cm, ${b} cm and ${c} cm. Is it right-angled?`,
+          answer: right ? 'Yes' : 'No',
+          working: `${a}² + ${b}² = ${a * a} + ${b * b} = ${lhs}${right ? ` = ${c}²` : `, but ${c}² = ${c * c}`} → ${right ? 'yes' : 'no'} (converse of Pythagoras)`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-04', difficulty: 'easy',
+    question: 'In a right-angled triangle, the hypotenuse is 12 cm and one angle is 35°. Find the side opposite the 35° angle, correct to 3 significant figures.',
+    answer: '6.88 cm',
+    working: 'sin 35° = opp/hyp → opp = 12 sin 35° = 6.88 cm',
+    vary: {
+      make: rand => {
+        const hyp = rand(5, 25);
+        const angle = rand(15, 75);
+        const opp = hyp * Math.sin(toRadians(angle));
+        return {
+          question: `In a right-angled triangle, the hypotenuse is ${hyp} cm and one angle is ${angle}°. Find the side opposite the ${angle}° angle, correct to 3 significant figures.`,
+          answer: `${sf3(opp)} cm`,
+          working: `sin ${angle}° = opp/hyp → opp = ${hyp} sin ${angle}° = ${sf3(opp)} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-05', difficulty: 'easy',
+    question: 'In a right-angled triangle, the hypotenuse is 15 cm and one angle is 40°. Find the side adjacent to the 40° angle, correct to 3 significant figures.',
+    answer: '11.5 cm',
+    working: 'cos 40° = adj/hyp → adj = 15 cos 40° = 11.5 cm',
+    vary: {
+      make: rand => {
+        const hyp = rand(5, 25);
+        const angle = rand(15, 75);
+        const adj = hyp * Math.cos(toRadians(angle));
+        return {
+          question: `In a right-angled triangle, the hypotenuse is ${hyp} cm and one angle is ${angle}°. Find the side adjacent to the ${angle}° angle, correct to 3 significant figures.`,
+          answer: `${sf3(adj)} cm`,
+          working: `cos ${angle}° = adj/hyp → adj = ${hyp} cos ${angle}° = ${sf3(adj)} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-06', difficulty: 'medium',
+    question: 'In a right-angled triangle, the sides next to the right angle are 5 cm and 8 cm. Find the angle opposite the 5 cm side, correct to 1 decimal place.',
+    answer: '32.0°',
+    working: 'tan θ = opp/adj = 5/8 → θ = tan⁻¹(5/8) = 32.0°',
+    vary: {
+      make: rand => {
+        const opp = rand(2, 15);
+        const adj = pick(rand, [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].filter(v => v !== opp));
+        const angle = toDegrees(Math.atan(opp / adj));
+        return {
+          question: `In a right-angled triangle, the sides next to the right angle are ${opp} cm and ${adj} cm. Find the angle opposite the ${opp} cm side, correct to 1 decimal place.`,
+          answer: `${dp1(angle)}°`,
+          working: `tan θ = opp/adj = ${opp}/${adj} → θ = tan⁻¹(${opp}/${adj}) = ${dp1(angle)}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-07', difficulty: 'medium',
+    question: 'In triangle ABC, angle A = 50°, angle B = 65° and BC = 10 cm. Find AC, correct to 3 significant figures.',
+    answer: '11.8 cm',
+    working: 'Sine rule: AC/sin B = BC/sin A → AC = 10 sin 65° ÷ sin 50° = 11.8 cm',
+    vary: {
+      make: rand => {
+        const A = rand(30, 80);
+        const B = rand(30, 140 - A);
+        const a = rand(5, 20);
+        const b = (a * Math.sin(toRadians(B))) / Math.sin(toRadians(A));
+        return {
+          question: `In triangle ABC, angle A = ${A}°, angle B = ${B}° and BC = ${a} cm. Find AC, correct to 3 significant figures.`,
+          answer: `${sf3(b)} cm`,
+          working: `Sine rule: AC/sin B = BC/sin A → AC = ${a} sin ${B}° ÷ sin ${A}° = ${sf3(b)} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-08', difficulty: 'hard',
+    question: 'In triangle ABC, AB = 7 cm, AC = 9 cm and angle BAC = 60°. Find BC, correct to 3 significant figures.',
+    answer: '8.19 cm',
+    working: 'Cosine rule: BC² = 7² + 9² − 2(7)(9) cos 60° = 67 → BC = √67 = 8.19 cm',
+    vary: {
+      make: rand => {
+        const b = rand(4, 15);
+        const c = rand(4, 15);
+        const A = rand(25, 140);
+        const a2 = b * b + c * c - 2 * b * c * Math.cos(toRadians(A));
+        return {
+          question: `In triangle ABC, AB = ${c} cm, AC = ${b} cm and angle BAC = ${A}°. Find BC, correct to 3 significant figures.`,
+          answer: `${sf3(Math.sqrt(a2))} cm`,
+          working: `Cosine rule: BC² = ${c}² + ${b}² − 2(${c})(${b}) cos ${A}° = ${sf3(a2)} → BC = ${sf3(Math.sqrt(a2))} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-09', difficulty: 'hard',
+    question: 'A triangle has sides 5 cm, 7 cm and 9 cm. Find its largest angle, correct to 1 decimal place.',
+    answer: '95.7°',
+    working: 'The largest angle is opposite the longest side: cos θ = (5² + 7² − 9²) ÷ (2 × 5 × 7) = −0.1 → θ = 95.7°',
+    vary: {
+      make: rand => {
+        let a, b, c;
+        do { [a, b, c] = [rand(3, 15), rand(3, 15), rand(3, 15)].sort((x, y) => x - y); } while (a + b <= c || c === b);
+        const cosine = (a * a + b * b - c * c) / (2 * a * b);
+        const angle = toDegrees(Math.acos(cosine));
+        return {
+          question: `A triangle has sides ${a} cm, ${b} cm and ${c} cm. Find its largest angle, correct to 1 decimal place.`,
+          answer: `${dp1(angle)}°`,
+          working: `The largest angle is opposite the longest side: cos θ = (${a}² + ${b}² − ${c}²) ÷ (2 × ${a} × ${b}) = ${signed(Number(cosine.toFixed(4)))} → θ = ${dp1(angle)}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-10', difficulty: 'medium',
+    question: 'Find the area of triangle PQR where PQ = 8 cm, PR = 11 cm and angle QPR = 40°, correct to 3 significant figures.',
+    answer: '28.3 cm²',
+    working: 'Area = ½ab sin C = ½ × 8 × 11 × sin 40° = 28.3 cm²',
+    vary: {
+      make: rand => {
+        const p = rand(4, 15);
+        const r = rand(4, 15);
+        const angle = rand(20, 150);
+        const area = 0.5 * p * r * Math.sin(toRadians(angle));
+        return {
+          question: `Find the area of triangle PQR where PQ = ${p} cm, PR = ${r} cm and angle QPR = ${angle}°, correct to 3 significant figures.`,
+          answer: `${sf3(area)} cm²`,
+          working: `Area = ½ab sin C = ½ × ${p} × ${r} × sin ${angle}° = ${sf3(area)} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-11', difficulty: 'medium',
+    question: 'From a point 30 m from the foot of a building, the angle of elevation of the top is 35°. Find the height of the building, correct to 3 significant figures.',
+    answer: '21.0 m',
+    working: 'tan 35° = height/30 → height = 30 tan 35° = 21.0 m',
+    vary: {
+      make: rand => {
+        const d = 5 * rand(2, 20);
+        const angle = rand(15, 70);
+        const h = d * Math.tan(toRadians(angle));
+        return {
+          question: `From a point ${d} m from the foot of a building, the angle of elevation of the top is ${angle}°. Find the height of the building, correct to 3 significant figures.`,
+          answer: `${sf3(h)} m`,
+          working: `tan ${angle}° = height/${d} → height = ${d} tan ${angle}° = ${sf3(h)} m`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-12', difficulty: 'hard',
+    question: 'From the top of a 50 m cliff, the angle of depression of a boat is 20°. How far is the boat from the foot of the cliff, correct to 3 significant figures?',
+    answer: '137 m',
+    working: 'Angle of depression = angle of elevation from the boat → tan 20° = 50/d → d = 50 ÷ tan 20° = 137 m',
+    vary: {
+      make: rand => {
+        const h = 10 * rand(2, 12);
+        const angle = rand(10, 60);
+        const d = h / Math.tan(toRadians(angle));
+        return {
+          question: `From the top of ${aOrAn(h)} ${h} m cliff, the angle of depression of a boat is ${angle}°. How far is the boat from the foot of the cliff, correct to 3 significant figures?`,
+          answer: `${sf3(d)} m`,
+          working: `Angle of depression = angle of elevation from the boat → tan ${angle}° = ${h}/d → d = ${h} ÷ tan ${angle}° = ${sf3(d)} m`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-13', difficulty: 'medium',
+    question: 'The bearing of B from A is 065°. Find the bearing of A from B.',
+    answer: '245°',
+    working: 'Back bearing = bearing ± 180° → 065 + 180 = 245°',
+    vary: {
+      make: rand => {
+        const bearing = rand(1, 359);
+        const back = bearing < 180 ? bearing + 180 : bearing - 180;
+        const three = n => String(n).padStart(3, '0');
+        return {
+          question: `The bearing of B from A is ${three(bearing)}°. Find the bearing of A from B.`,
+          answer: `${three(back)}°`,
+          working: `Back bearing = bearing ± 180° → ${three(bearing)} ${bearing < 180 ? '+' : '−'} 180 = ${three(back)}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-14', difficulty: 'medium',
+    question: 'Find the obtuse angle θ such that sin θ = sin 40°.',
+    answer: '140°',
+    working: 'sin θ = sin(180° − θ) → θ = 180 − 40 = 140°',
+    vary: {
+      make: rand => {
+        const x = rand(5, 85);
+        return {
+          question: `Find the obtuse angle θ such that sin θ = sin ${x}°.`,
+          answer: `${180 - x}°`,
+          working: `sin θ = sin(180° − θ) → θ = 180 − ${x} = ${180 - x}°`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g4-15', difficulty: 'easy',
+    question: 'When should you use the sine rule, and when the cosine rule?',
+    answer: 'Sine rule (a/sin A = b/sin B): when you know a side and its opposite angle, plus one more side or angle.\nCosine rule (a² = b² + c² − 2bc cos A): when you know two sides and the angle between them, or all three sides.',
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — G5 Mensuration ----------
+
+// 120 → "2π/3"   180 → "π"   90 → "π/2"
+function radiansOf(degrees) {
+  const [top, bottom = '1'] = fraction(degrees, 180).split('/');
+  const numerator = top === '1' ? 'π' : `${top}π`;
+  return bottom === '1' ? numerator : `${numerator}/${bottom}`;
+}
+
+const oMathG5 = deck('G5 Mensuration', [
+  {
+    id: 'g5-01', difficulty: 'easy',
+    question: 'A trapezium has parallel sides 8 cm and 12 cm, and height 5 cm. Find its area.',
+    answer: '50 cm²',
+    working: '½ × (8 + 12) × 5 = 50 cm²',
+    vary: {
+      make: rand => {
+        const a = rand(3, 15);
+        const b = pick(rand, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20].filter(v => v !== a));
+        const h = 2 * rand(1, 8);
+        return {
+          question: `A trapezium has parallel sides ${a} cm and ${b} cm, and height ${h} cm. Find its area.`,
+          answer: `${((a + b) * h) / 2} cm²`,
+          working: `½ × (${a} + ${b}) × ${h} = ${((a + b) * h) / 2} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-02', difficulty: 'easy',
+    question: 'Find the area of a circle with radius 7 cm, correct to 3 significant figures.',
+    answer: '154 cm²',
+    working: 'πr² = π × 7² = 153.9… = 154 cm²',
+    vary: {
+      make: rand => {
+        const r = rand(2, 20);
+        return {
+          question: `Find the area of a circle with radius ${r} cm, correct to 3 significant figures.`,
+          answer: `${sf3(Math.PI * r * r)} cm²`,
+          working: `πr² = π × ${r}² = ${sf3(Math.PI * r * r)} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-03', difficulty: 'easy',
+    question: 'Find the circumference of a circle with diameter 10 cm, correct to 3 significant figures.',
+    answer: '31.4 cm',
+    working: 'πd = π × 10 = 31.4 cm',
+    vary: {
+      make: rand => {
+        const d = rand(3, 40);
+        return {
+          question: `Find the circumference of a circle with diameter ${d} cm, correct to 3 significant figures.`,
+          answer: `${sf3(Math.PI * d)} cm`,
+          working: `πd = π × ${d} = ${sf3(Math.PI * d)} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-04', difficulty: 'medium',
+    question: 'A sector has radius 9 cm and angle 80°. Find its arc length, correct to 3 significant figures.',
+    answer: '12.6 cm',
+    working: 'Arc = (80/360) × 2π × 9 = 12.6 cm',
+    vary: {
+      make: rand => {
+        const r = rand(3, 20);
+        const angle = 5 * rand(4, 60);
+        const arc = (angle / 360) * 2 * Math.PI * r;
+        return {
+          question: `A sector has radius ${r} cm and angle ${angle}°. Find its arc length, correct to 3 significant figures.`,
+          answer: `${sf3(arc)} cm`,
+          working: `Arc = (${angle}/360) × 2π × ${r} = ${sf3(arc)} cm`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-05', difficulty: 'medium',
+    question: 'A sector has radius 6 cm and angle 150°. Find its area, correct to 3 significant figures.',
+    answer: '47.1 cm²',
+    working: 'Area = (150/360) × π × 6² = 47.1 cm²',
+    vary: {
+      make: rand => {
+        const r = rand(3, 20);
+        const angle = 5 * rand(4, 60);
+        const area = (angle / 360) * Math.PI * r * r;
+        return {
+          question: `A sector has radius ${r} cm and angle ${angle}°. Find its area, correct to 3 significant figures.`,
+          answer: `${sf3(area)} cm²`,
+          working: `Area = (${angle}/360) × π × ${r}² = ${sf3(area)} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-06', difficulty: 'easy',
+    question: 'Convert 120° to radians, giving your answer in terms of π.',
+    answer: '2π/3',
+    working: '180° = π radians → 120 × π/180 = 2π/3',
+    vary: {
+      make: rand => {
+        const degrees = pick(rand, [30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330]);
+        return {
+          question: `Convert ${degrees}° to radians, giving your answer in terms of π.`,
+          answer: radiansOf(degrees),
+          working: `180° = π radians → ${degrees} × π/180 = ${radiansOf(degrees)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-07', difficulty: 'medium',
+    question: 'A sector has radius 8 cm and angle 1.2 radians. Find its arc length and its area.',
+    answer: 'Arc length 9.6 cm, area 38.4 cm²',
+    working: 's = rθ = 8 × 1.2 = 9.6; A = ½r²θ = ½ × 64 × 1.2 = 38.4',
+    vary: {
+      make: rand => {
+        const r = rand(2, 15);
+        const tenths = rand(3, 30);
+        const theta = tenths / 10;
+        const arc = (r * tenths) / 10;
+        const area = (r * r * tenths) / 20;
+        return {
+          question: `A sector has radius ${r} cm and angle ${theta} radians. Find its arc length and its area.`,
+          answer: `Arc length ${arc} cm, area ${area} cm²`,
+          working: `s = rθ = ${r} × ${theta} = ${arc}; A = ½r²θ = ½ × ${r * r} × ${theta} = ${area}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-08', difficulty: 'easy',
+    question: 'Find the volume of a cylinder with radius 4 cm and height 10 cm, correct to 3 significant figures.',
+    answer: '503 cm³',
+    working: 'V = πr²h = π × 16 × 10 = 502.6… = 503 cm³',
+    vary: {
+      make: rand => {
+        const r = rand(2, 12);
+        const h = rand(3, 25);
+        const v = Math.PI * r * r * h;
+        return {
+          question: `Find the volume of a cylinder with radius ${r} cm and height ${h} cm, correct to 3 significant figures.`,
+          answer: `${sf3(v)} cm³`,
+          working: `V = πr²h = π × ${r * r} × ${h} = ${sf3(v)} cm³`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-09', difficulty: 'medium',
+    question: 'Find the volume of a cone with radius 6 cm and height 8 cm, correct to 3 significant figures.',
+    answer: '302 cm³',
+    working: 'V = ⅓πr²h = ⅓ × π × 36 × 8 = 301.6… = 302 cm³',
+    vary: {
+      make: rand => {
+        const r = rand(2, 12);
+        const h = rand(3, 25);
+        const v = (Math.PI * r * r * h) / 3;
+        return {
+          question: `Find the volume of a cone with radius ${r} cm and height ${h} cm, correct to 3 significant figures.`,
+          answer: `${sf3(v)} cm³`,
+          working: `V = ⅓πr²h = ⅓ × π × ${r * r} × ${h} = ${sf3(v)} cm³`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-10', difficulty: 'medium',
+    question: 'A sphere has radius 3 cm. Find its volume and its surface area, correct to 3 significant figures.',
+    answer: 'Volume 113 cm³, surface area 113 cm²',
+    working: 'V = 4/3 πr³ = 36π; A = 4πr² = 36π (the same number only when r = 3)',
+    vary: {
+      make: rand => {
+        const r = pick(rand, [2, 4, 5, 6, 7, 8, 9, 10, 12]);
+        const v = (4 / 3) * Math.PI * r ** 3;
+        const a = 4 * Math.PI * r * r;
+        return {
+          question: `A sphere has radius ${r} cm. Find its volume and its surface area, correct to 3 significant figures.`,
+          answer: `Volume ${sf3(v)} cm³, surface area ${sf3(a)} cm²`,
+          working: `V = 4/3 πr³ = 4/3 × π × ${r ** 3}; A = 4πr² = 4 × π × ${r * r}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-11', difficulty: 'medium',
+    question: 'A pyramid has a rectangular base 6 cm by 5 cm and a height of 9 cm. Find its volume.',
+    answer: '90 cm³',
+    working: 'V = ⅓ × base area × height = ⅓ × 30 × 9 = 90 cm³',
+    vary: {
+      make: rand => {
+        const l = rand(2, 12);
+        const w = rand(2, 12);
+        const h = 3 * rand(1, 8);
+        return {
+          question: `A pyramid has a rectangular base ${l} cm by ${w} cm and a height of ${h} cm. Find its volume.`,
+          answer: `${(l * w * h) / 3} cm³`,
+          working: `V = ⅓ × base area × height = ⅓ × ${l * w} × ${h} = ${(l * w * h) / 3} cm³`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-12', difficulty: 'medium',
+    question: 'A prism is 20 cm long. Its cross-section is a triangle with base 6 cm and height 4 cm. Find its volume.',
+    answer: '240 cm³',
+    working: 'V = cross-section area × length = (½ × 6 × 4) × 20 = 240 cm³',
+    vary: {
+      make: rand => {
+        const b = 2 * rand(1, 8);
+        const h = rand(2, 12);
+        const len = rand(5, 30);
+        return {
+          question: `A prism is ${len} cm long. Its cross-section is a triangle with base ${b} cm and height ${h} cm. Find its volume.`,
+          answer: `${withCommas((b * h * len) / 2)} cm³`,
+          working: `V = cross-section area × length = (½ × ${b} × ${h}) × ${len} = ${withCommas((b * h * len) / 2)} cm³`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-13', difficulty: 'hard',
+    question: 'A cone has radius 5 cm and height 12 cm. Find its curved surface area, correct to 3 significant figures.',
+    answer: '204 cm²',
+    working: 'Slant height l = √(5² + 12²) = 13 → curved area = πrl = π × 5 × 13 = 204 cm²',
+    vary: {
+      make: rand => {
+        const [a, b, c] = pick(rand, TRIPLES.slice(0, 4));
+        const k = rand(1, 2);
+        const [r, h] = rand(0, 1) ? [a * k, b * k] : [b * k, a * k];
+        const area = Math.PI * r * c * k;
+        return {
+          question: `A cone has radius ${r} cm and height ${h} cm. Find its curved surface area, correct to 3 significant figures.`,
+          answer: `${sf3(area)} cm²`,
+          working: `Slant height l = √(${r}² + ${h}²) = ${c * k} → curved area = πrl = π × ${r} × ${c * k} = ${sf3(area)} cm²`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-14', difficulty: 'hard',
+    question: 'A solid is made of a hemisphere on top of a cylinder, both with radius 3 cm. The cylinder is 10 cm tall. Find the total volume, correct to 3 significant figures.',
+    answer: '339 cm³',
+    working: 'Cylinder πr²h = 90π; hemisphere ⅔πr³ = 18π → total 108π = 339 cm³',
+    vary: {
+      make: rand => {
+        const r = rand(2, 9);
+        const h = rand(4, 20);
+        const cyl = r * r * h;
+        const hemi = (2 * r ** 3) / 3;
+        const total = Math.PI * (cyl + hemi);
+        return {
+          question: `A solid is made of a hemisphere on top of a cylinder, both with radius ${r} cm. The cylinder is ${h} cm tall. Find the total volume, correct to 3 significant figures.`,
+          answer: `${sf3(total)} cm³`,
+          working: `Cylinder πr²h = ${cyl}π; hemisphere ⅔πr³ = ${Number(hemi.toFixed(2))}π → total ${Number((cyl + hemi).toFixed(2))}π = ${sf3(total)} cm³`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g5-15', difficulty: 'hard',
+    question: 'A cylinder has volume 500 cm³ and radius 5 cm. Find its height, correct to 3 significant figures.',
+    answer: '6.37 cm',
+    working: 'V = πr²h → h = 500 ÷ (π × 25) = 6.37 cm',
+    vary: {
+      make: rand => {
+        const r = rand(2, 10);
+        const v = 50 * rand(2, 40);
+        const h = v / (Math.PI * r * r);
+        return {
+          question: `A cylinder has volume ${withCommas(v)} cm³ and radius ${r} cm. Find its height, correct to 3 significant figures.`,
+          answer: `${sf3(h)} cm`,
+          working: `V = πr²h → h = ${withCommas(v)} ÷ (π × ${r * r}) = ${sf3(h)} cm`,
+        };
+      },
+    },
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — G6 Coordinate geometry ----------
+
+// Two points whose difference is a scaled Pythagorean triple, so the distance is a whole number.
+function tripleSegment(rand) {
+  const [a, b, c] = pick(rand, TRIPLES.slice(0, 3));
+  const k = rand(1, 2);
+  const [dx0, dy0] = rand(0, 1) ? [a * k, b * k] : [b * k, a * k];
+  const dx = rand(0, 1) ? dx0 : -dx0;
+  const dy = rand(0, 1) ? dy0 : -dy0;
+  const x1 = rand(-6, 6);
+  const y1 = rand(-6, 6);
+  return { x1, y1, x2: x1 + dx, y2: y1 + dy, dx, dy, length: c * k };
+}
+
+const oMathG6 = deck('G6 Coordinate geometry', [
+  {
+    id: 'g6-01', difficulty: 'easy',
+    question: 'Find the length of the line segment joining A(1, 2) and B(7, 10).',
+    answer: '10 units',
+    working: '√((7 − 1)² + (10 − 2)²) = √(36 + 64) = √100 = 10',
+    vary: {
+      make: rand => {
+        const { x1, y1, x2, y2, dx, dy, length } = tripleSegment(rand);
+        return {
+          question: `Find the length of the line segment joining A${point(x1, y1)} and B${point(x2, y2)}.`,
+          answer: `${length} units`,
+          working: `√((${signed(dx)})² + (${signed(dy)})²) = √(${dx * dx} + ${dy * dy}) = √${length * length} = ${length}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-02', difficulty: 'medium',
+    question: 'Find the length of the line segment joining P(−2, 3) and Q(4, −1), correct to 3 significant figures.',
+    answer: '7.21 units',
+    working: '√(6² + (−4)²) = √52 = 7.21',
+    vary: {
+      make: rand => {
+        let dx, dy;
+        do { [dx, dy] = [nonZero(rand, 9), nonZero(rand, 9)]; } while (Number.isInteger(Math.sqrt(dx * dx + dy * dy)));
+        const x1 = rand(-6, 6);
+        const y1 = rand(-6, 6);
+        const d2 = dx * dx + dy * dy;
+        return {
+          question: `Find the length of the line segment joining P${point(x1, y1)} and Q${point(x1 + dx, y1 + dy)}, correct to 3 significant figures.`,
+          answer: `${sf3(Math.sqrt(d2))} units`,
+          working: `√((${signed(dx)})² + (${signed(dy)})²) = √${d2} = ${sf3(Math.sqrt(d2))}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-03', difficulty: 'easy',
+    question: 'Find the midpoint of A(2, −3) and B(8, 5).',
+    answer: '(5, 1)',
+    working: '((2 + 8) ÷ 2, (−3 + 5) ÷ 2) = (5, 1)',
+    vary: {
+      make: rand => {
+        const [x1, y1, x2, y2] = [rand(-8, 8), rand(-8, 8), rand(-8, 8), rand(-8, 8)];
+        return {
+          question: `Find the midpoint of A${point(x1, y1)} and B${point(x2, y2)}.`,
+          answer: point((x1 + x2) / 2, (y1 + y2) / 2),
+          working: `((${signed(x1)}${plusMinus(x2)}) ÷ 2, (${signed(y1)}${plusMinus(y2)}) ÷ 2) = ${point((x1 + x2) / 2, (y1 + y2) / 2)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-04', difficulty: 'medium',
+    question: 'Find the gradient of the line through (1, 2) and (7, 6).',
+    answer: '2/3',
+    working: '(6 − 2) ÷ (7 − 1) = 4/6 = 2/3',
+    vary: {
+      make: rand => {
+        const [x1, y1] = [rand(-6, 6), rand(-6, 6)];
+        const dx = nonZero(rand, 8);
+        const dy = nonZero(rand, 8);
+        return {
+          question: `Find the gradient of the line through ${point(x1, y1)} and ${point(x1 + dx, y1 + dy)}.`,
+          answer: signedFraction(dy, dx),
+          working: `(${signed(y1 + dy)} − ${y1 < 0 ? `(${signed(y1)})` : y1}) ÷ (${signed(x1 + dx)} − ${x1 < 0 ? `(${signed(x1)})` : x1}) = ${signedFraction(dy, dx)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-05', difficulty: 'medium',
+    question: 'Find the equation of the line passing through (1, 5) and (3, 11).',
+    answer: 'y = 3x + 2',
+    working: 'Gradient = (11 − 5) ÷ (3 − 1) = 3 → 5 = 3(1) + c → c = 2',
+    vary: {
+      make: rand => {
+        const m = nonZero(rand, 5);
+        const c = rand(-9, 9);
+        const x1 = rand(-4, 4);
+        const x2 = x1 + rand(1, 4);
+        const [y1, y2] = [m * x1 + c, m * x2 + c];
+        return {
+          question: `Find the equation of the line passing through ${point(x1, y1)} and ${point(x2, y2)}.`,
+          answer: `y = ${poly([[m, 'x'], [c, '']])}`,
+          working: `Gradient = (${signed(y2)} − ${y1 < 0 ? `(${signed(y1)})` : y1}) ÷ (${signed(x2)} − ${x1 < 0 ? `(${signed(x1)})` : x1}) = ${signed(m)} → ${signed(y1)} = ${signed(m)}(${signed(x1)}) + c → c = ${signed(c)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-06', difficulty: 'medium',
+    question: 'Find the equation of the line parallel to y = 3x + 1 that passes through (2, 5).',
+    answer: 'y = 3x − 1',
+    working: 'Parallel lines have the same gradient (3) → 5 = 3(2) + c → c = −1',
+    vary: {
+      make: rand => {
+        const m = nonZero(rand, 5);
+        const c0 = nonZero(rand, 9);
+        const [x1, y1] = [nonZero(rand, 5), nonZero(rand, 9)];
+        const c = y1 - m * x1;
+        return {
+          question: `Find the equation of the line parallel to y = ${poly([[m, 'x'], [c0, '']])} that passes through ${point(x1, y1)}.`,
+          answer: `y = ${poly([[m, 'x'], [c, '']])}`,
+          working: `Parallel lines have the same gradient (${signed(m)}) → ${signed(y1)} = ${signed(m)}(${signed(x1)}) + c → c = ${signed(c)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-07', difficulty: 'easy',
+    question: 'The point (k, 7) lies on the line y = 2x − 3. Find k.',
+    answer: 'k = 5',
+    working: '7 = 2k − 3 → 2k = 10 → k = 5',
+    vary: {
+      make: rand => {
+        const m = nonZero(rand, 5);
+        const c = nonZero(rand, 9);
+        const k = nonZero(rand, 8);
+        const y = m * k + c;
+        return {
+          question: `The point (k, ${signed(y)}) lies on the line y = ${poly([[m, 'x'], [c, '']])}. Find k.`,
+          answer: `k = ${signed(k)}`,
+          working: `${signed(y)} = ${poly([[m, 'k'], [c, '']])} → ${poly([[m, 'k']])} = ${signed(y - c)} → k = ${signed(k)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-08', difficulty: 'medium',
+    question: 'Find where the line 3x + 4y = 12 crosses the x-axis and the y-axis.',
+    answer: 'x-axis at (4, 0); y-axis at (0, 3)',
+    working: 'x-axis: y = 0 → 3x = 12 → x = 4. y-axis: x = 0 → 4y = 12 → y = 3',
+    vary: {
+      make: rand => {
+        const p = nonZero(rand, 8);
+        const q = nonZero(rand, 8);
+        const g = gcd(Math.abs(p), Math.abs(q));
+        // The line through (p, 0) and (0, q): qx + py = pq, divided by their HCF.
+        const [a, b, c] = [q / g, p / g, (p * q) / g];
+        return {
+          question: `Find where the line ${poly([[a, 'x'], [b, 'y']])} = ${signed(c)} crosses the x-axis and the y-axis.`,
+          answer: `x-axis at ${point(p, 0)}; y-axis at ${point(0, q)}`,
+          working: `x-axis: y = 0 → ${poly([[a, 'x']])} = ${signed(c)} → x = ${signed(p)}. y-axis: x = 0 → ${poly([[b, 'y']])} = ${signed(c)} → y = ${signed(q)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-09', difficulty: 'medium',
+    question: 'Find the gradient of the line 2x + 5y = 10.',
+    answer: '−2/5',
+    working: '5y = −2x + 10 → y = −2/5 x + 2',
+    vary: {
+      make: rand => {
+        const a = nonZero(rand, 9);
+        const b = pick(rand, [2, 3, 4, 5, 6, 7, 8, 9]);
+        const c = nonZero(rand, 12);
+        return {
+          question: `Find the gradient of the line ${poly([[a, 'x'], [b, 'y']])} = ${signed(c)}.`,
+          answer: signedFraction(-a, b),
+          working: `${b}y = ${poly([[-a, 'x'], [c, '']])} → gradient = ${signed(-a)} ÷ ${b} = ${signedFraction(-a, b)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-10', difficulty: 'medium',
+    question: 'Are the lines y = 2x + 3 and 4y = 8x − 1 parallel?',
+    answer: 'Yes',
+    working: '4y = 8x − 1 → y = 2x − 1/4. Both gradients are 2, so they are parallel',
+    vary: {
+      make: rand => {
+        const m = nonZero(rand, 4);
+        const k = rand(2, 5);
+        const parallel = rand(0, 1) === 1;
+        const m2 = parallel ? m : pick(rand, [-4, -3, -2, -1, 1, 2, 3, 4].filter(v => v !== m));
+        const c1 = nonZero(rand, 9);
+        const d = nonZero(rand, 9);
+        return {
+          question: `Are the lines y = ${poly([[m, 'x'], [c1, '']])} and ${k}y = ${poly([[k * m2, 'x'], [d, '']])} parallel?`,
+          answer: parallel ? 'Yes' : 'No',
+          working: `${k}y = ${poly([[k * m2, 'x'], [d, '']])} → gradient ${signed(m2)}. The other gradient is ${signed(m)}, so they are ${parallel ? '' : 'NOT '}parallel`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-11', difficulty: 'medium',
+    question: 'Find the area of the triangle with vertices A(1, 1), B(7, 1) and C(4, 5).',
+    answer: '12 square units',
+    working: 'AB is horizontal: base = 7 − 1 = 6, height = 5 − 1 = 4 → ½ × 6 × 4 = 12',
+    vary: {
+      make: rand => {
+        const [x1, y1] = [rand(-5, 3), rand(-5, 5)];
+        const base = rand(2, 10);
+        const height = nonZero(rand, 8);
+        const cx = rand(x1 - 2, x1 + base + 2);
+        const area = (base * Math.abs(height)) / 2;
+        return {
+          question: `Find the area of the triangle with vertices A${point(x1, y1)}, B${point(x1 + base, y1)} and C${point(cx, y1 + height)}.`,
+          answer: `${area} square units`,
+          working: `AB is horizontal: base = ${base}, height = ${Math.abs(height)} (vertical distance from C to AB) → ½ × ${base} × ${Math.abs(height)} = ${area}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g6-12', difficulty: 'easy',
+    question: 'Write the equation of the line through (3, −2) that is parallel to the x-axis.',
+    answer: 'y = −2',
+    working: 'Lines parallel to the x-axis are horizontal: every point has the same y-coordinate',
+    vary: {
+      make: rand => {
+        const [x, y] = [nonZero(rand, 9), nonZero(rand, 9)];
+        const horizontal = rand(0, 1) === 1;
+        return {
+          question: `Write the equation of the line through ${point(x, y)} that is parallel to the ${horizontal ? 'x' : 'y'}-axis.`,
+          answer: horizontal ? `y = ${signed(y)}` : `x = ${signed(x)}`,
+          working: horizontal
+            ? 'Lines parallel to the x-axis are horizontal: every point has the same y-coordinate'
+            : 'Lines parallel to the y-axis are vertical: every point has the same x-coordinate',
+        };
+      },
+    },
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — G7 Vectors in two dimensions ----------
+
+// (3, -4) → "( 3 )\n( −4 )"  (a column vector, one number per line)
+function column(x, y) {
+  return `( ${signed(x)} )\n( ${signed(y)} )`;
+}
+
+const oMathG7 = deck('G7 Vectors in two dimensions', [
+  {
+    id: 'g7-01', difficulty: 'easy',
+    question: 'Find the magnitude of the vector\n( 6 )\n( −8 )',
+    answer: '10',
+    working: '√(6² + (−8)²) = √100 = 10',
+    vary: {
+      make: rand => {
+        const { dx, dy, length } = tripleSegment(rand);
+        return {
+          question: `Find the magnitude of the vector\n${column(dx, dy)}`,
+          answer: String(length),
+          working: `√((${signed(dx)})² + (${signed(dy)})²) = √${length * length} = ${length}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-02', difficulty: 'medium',
+    question: 'Find the magnitude of the vector\n( 3 )\n( 5 )\ncorrect to 3 significant figures.',
+    answer: '5.83',
+    working: '√(3² + 5²) = √34 = 5.83',
+    vary: {
+      make: rand => {
+        let x, y;
+        do { [x, y] = [nonZero(rand, 9), nonZero(rand, 9)]; } while (Number.isInteger(Math.sqrt(x * x + y * y)));
+        return {
+          question: `Find the magnitude of the vector\n${column(x, y)}\ncorrect to 3 significant figures.`,
+          answer: sf3(Math.sqrt(x * x + y * y)),
+          working: `√((${signed(x)})² + (${signed(y)})²) = √${x * x + y * y} = ${sf3(Math.sqrt(x * x + y * y))}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-03', difficulty: 'easy',
+    question: 'a =\n( 2 )\n( −3 )\nb =\n( 4 )\n( 1 )\nFind a + b.',
+    answer: '( 6 )\n( −2 )',
+    working: 'Add the top numbers and the bottom numbers: 2 + 4 = 6, −3 + 1 = −2',
+    vary: {
+      make: rand => {
+        const [a1, a2, b1, b2] = [rand(-8, 8), rand(-8, 8), rand(-8, 8), rand(-8, 8)];
+        return {
+          question: `a =\n${column(a1, a2)}\nb =\n${column(b1, b2)}\nFind a + b.`,
+          answer: column(a1 + b1, a2 + b2),
+          working: `Add the top numbers and the bottom numbers: ${signed(a1)}${plusMinus(b1)} = ${signed(a1 + b1)}, ${signed(a2)}${plusMinus(b2)} = ${signed(a2 + b2)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-04', difficulty: 'medium',
+    question: 'a =\n( 3 )\n( −1 )\nb =\n( 2 )\n( 4 )\nFind 2a − 3b.',
+    answer: '( 0 )\n( −14 )',
+    working: '2a = (6, −2) and 3b = (6, 12) → (6 − 6, −2 − 12) = (0, −14)',
+    vary: {
+      make: rand => {
+        const [a1, a2, b1, b2] = [rand(-6, 6), rand(-6, 6), rand(-6, 6), rand(-6, 6)];
+        const [p, q] = [rand(2, 4), rand(2, 4)];
+        const [r1, r2] = [p * a1 - q * b1, p * a2 - q * b2];
+        return {
+          question: `a =\n${column(a1, a2)}\nb =\n${column(b1, b2)}\nFind ${p}a − ${q}b.`,
+          answer: column(r1, r2),
+          working: `${p}a = ${point(p * a1, p * a2)} and ${q}b = ${point(q * b1, q * b2)} → ${point(r1, r2)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-05', difficulty: 'easy',
+    question: 'A is the point (1, 4) and B is the point (6, −2). Find the column vector AB.',
+    answer: '( 5 )\n( −6 )',
+    working: 'AB = B − A = (6 − 1, −2 − 4) = (5, −6)',
+    vary: {
+      make: rand => {
+        const [x1, y1, x2, y2] = [rand(-8, 8), rand(-8, 8), rand(-8, 8), rand(-8, 8)];
+        return {
+          question: `A is the point ${point(x1, y1)} and B is the point ${point(x2, y2)}. Find the column vector AB.`,
+          answer: column(x2 - x1, y2 - y1),
+          working: `AB = B − A = (${signed(x2)} − ${x1 < 0 ? `(${signed(x1)})` : x1}, ${signed(y2)} − ${y1 < 0 ? `(${signed(y1)})` : y1}) = ${point(x2 - x1, y2 - y1)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-06', difficulty: 'medium',
+    question: 'The vectors\n( k )\n( 6 )\nand\n( 2 )\n( 3 )\nare parallel. Find k.',
+    answer: 'k = 4',
+    working: 'Parallel → one is a multiple of the other: 6 = 2 × 3, so k = 2 × 2 = 4',
+    vary: {
+      make: rand => {
+        const [p, q] = [nonZero(rand, 6), nonZero(rand, 6)];
+        const m = pick(rand, [-3, -2, 2, 3, 4]);
+        return {
+          question: `The vectors\n( k )\n( ${signed(q * m)} )\nand\n${column(p, q)}\nare parallel. Find k.`,
+          answer: `k = ${signed(p * m)}`,
+          working: `Parallel → one is a multiple of the other: ${signed(q * m)} = ${signed(m)} × ${q < 0 ? `(${signed(q)})` : q}, so k = ${signed(m)} × ${p < 0 ? `(${signed(p)})` : p} = ${signed(p * m)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-07', difficulty: 'medium',
+    question: 'p =\n( 3 )\n( −2 )\nr =\n( 7 )\n( 1 )\nFind q such that p + q = r.',
+    answer: '( 4 )\n( 3 )',
+    working: 'q = r − p = (7 − 3, 1 − (−2)) = (4, 3)',
+    vary: {
+      make: rand => {
+        const [p1, p2, q1, q2] = [rand(-8, 8), rand(-8, 8), rand(-8, 8), rand(-8, 8)];
+        const [r1, r2] = [p1 + q1, p2 + q2];
+        return {
+          question: `p =\n${column(p1, p2)}\nr =\n${column(r1, r2)}\nFind q such that p + q = r.`,
+          answer: column(q1, q2),
+          working: `q = r − p = (${signed(r1)} − ${p1 < 0 ? `(${signed(p1)})` : p1}, ${signed(r2)} − ${p2 < 0 ? `(${signed(p2)})` : p2}) = ${point(q1, q2)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-08', difficulty: 'medium',
+    question: 'OA = a and OB = b. Express AB in terms of a and b.',
+    answer: 'AB = b − a',
+    working: 'AB = AO + OB = −a + b',
+  },
+  {
+    id: 'g7-09', difficulty: 'hard',
+    question: 'OA = a and OB = b. P lies on AB with AP : PB = 1 : 2. Express OP in terms of a and b.',
+    answer: 'OP = 2/3 a + 1/3 b',
+    working: 'OP = OA + AP = a + 1/3(b − a) = 2/3 a + 1/3 b',
+    vary: {
+      make: rand => {
+        const [m, n] = ratioPair(rand);
+        const total = m + n;
+        const fa = fraction(n, total);
+        const fb = fraction(m, total);
+        return {
+          question: `OA = a and OB = b. P lies on AB with AP : PB = ${m} : ${n}. Express OP in terms of a and b.`,
+          answer: `OP = ${fa} a + ${fb} b`,
+          working: `OP = OA + AP = a + ${fraction(m, total)}(b − a) = ${fa} a + ${fb} b`,
+        };
+      },
+    },
+  },
+  {
+    id: 'g7-10', difficulty: 'medium',
+    question: 'What does it mean if AB = 3BC? What can you conclude about A, B and C?',
+    answer: 'AB is parallel to BC and 3 times as long. Since they share the point B, A, B and C lie on a straight line (they are collinear).',
+  },
+  {
+    id: 'g7-11', difficulty: 'easy',
+    question: 'If b = −2a, how are vectors a and b related?',
+    answer: 'b is parallel to a, twice as long, and points in the opposite direction.',
+    vary: {
+      make: rand => {
+        const k = pick(rand, [-4, -3, -2, 2, 3, 4]);
+        const size = { 2: 'twice', 3: 'three times', 4: 'four times' }[Math.abs(k)];
+        return {
+          question: `If b = ${signed(k)}a, how are vectors a and b related?`,
+          answer: `b is parallel to a, ${size} as long, and points in the ${k < 0 ? 'opposite' : 'same'} direction.`,
+          working: '',
+        };
+      },
+    },
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — S1 Data handling and analysis ----------
+
+// A shuffled copy of a list (uses the random helper so recipes stay testable).
+function shuffle(rand, list) {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = rand(0, i);
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+const sum = list => list.reduce((total, v) => total + v, 0);
+
+const oMathS1 = deck('S1 Data handling and analysis', [
+  {
+    id: 's1-01', difficulty: 'easy',
+    question: 'Find the mean of 4, 8, 6, 5, 9, 4.',
+    answer: '6',
+    working: '(4 + 8 + 6 + 5 + 9 + 4) ÷ 6 = 36 ÷ 6 = 6',
+    vary: {
+      make: rand => {
+        let n, mean, list;
+        do {
+          n = rand(5, 8);
+          mean = rand(4, 20);
+          list = Array.from({ length: n - 1 }, () => mean + rand(-4, 4));
+          list.push(mean * n - sum(list)); // last value makes the mean a whole number
+        } while (list[n - 1] < 1); // keep every value positive
+        return {
+          question: `Find the mean of ${list.join(', ')}.`,
+          answer: String(mean),
+          working: `(${list.join(' + ')}) ÷ ${n} = ${mean * n} ÷ ${n} = ${mean}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-02', difficulty: 'easy',
+    question: 'Find the median of 7, 3, 9, 4, 12, 5, 8, 10.',
+    answer: '7.5',
+    working: 'In order: 3, 4, 5, 7, 8, 9, 10, 12 → middle two are 7 and 8 → (7 + 8) ÷ 2 = 7.5',
+    vary: {
+      make: rand => {
+        const n = rand(6, 9);
+        const list = Array.from({ length: n }, () => rand(1, 30));
+        const sorted = [...list].sort((x, y) => x - y);
+        const mid = n % 2 === 1 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+        const how = n % 2 === 1
+          ? `the middle value (${(n + 1) / 2}th) is ${mid}`
+          : `middle two are ${sorted[n / 2 - 1]} and ${sorted[n / 2]} → (${sorted[n / 2 - 1]} + ${sorted[n / 2]}) ÷ 2 = ${mid}`;
+        return {
+          question: `Find the median of ${list.join(', ')}.`,
+          answer: String(mid),
+          working: `In order: ${sorted.join(', ')} → ${how}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-03', difficulty: 'easy',
+    question: 'Find the mode and the range of 5, 9, 2, 9, 7, 3, 9, 5.',
+    answer: 'Mode 9, range 7',
+    working: '9 appears most often (3 times). Range = 9 − 2 = 7',
+    vary: {
+      make: rand => {
+        const mode = rand(2, 20);
+        const others = shuffle(rand, range(25).filter(v => v !== mode)).slice(0, rand(4, 6));
+        const repeat = rand(0, 1) ? others[0] : others[1]; // one other value appears twice
+        const list = shuffle(rand, [mode, mode, mode, ...others, repeat]);
+        const spread = Math.max(...list) - Math.min(...list);
+        return {
+          question: `Find the mode and the range of ${list.join(', ')}.`,
+          answer: `Mode ${mode}, range ${spread}`,
+          working: `${mode} appears most often (3 times). Range = ${Math.max(...list)} − ${Math.min(...list)} = ${spread}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-04', difficulty: 'medium',
+    question: 'The table shows the number of siblings of some students.\nSiblings: 0, 1, 2, 3, 4\nFrequency: 5, 8, 6, 3, 2\nFind the mean number of siblings, correct to 3 significant figures.',
+    answer: '1.54',
+    working: 'Σfx = 0 + 8 + 12 + 9 + 8 = 37, Σf = 24 → 37 ÷ 24 = 1.54',
+    vary: {
+      make: rand => {
+        const freqs = [rand(1, 9), rand(2, 10), rand(2, 10), rand(1, 8), rand(1, 6)];
+        const fx = freqs.map((f, x) => f * x);
+        const mean = sum(fx) / sum(freqs);
+        return {
+          question: `The table shows the number of siblings of some students.\nSiblings: 0, 1, 2, 3, 4\nFrequency: ${freqs.join(', ')}\nFind the mean number of siblings, correct to 3 significant figures.`,
+          answer: sf3(mean),
+          working: `Σfx = ${fx.join(' + ')} = ${sum(fx)}, Σf = ${sum(freqs)} → ${sum(fx)} ÷ ${sum(freqs)} = ${sf3(mean)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-05', difficulty: 'hard',
+    question: 'Marks (grouped): 0 < x ≤ 10: 4 students, 10 < x ≤ 20: 7, 20 < x ≤ 30: 9, 30 < x ≤ 40: 5. Estimate the mean mark, correct to 3 significant figures.',
+    answer: '21.0',
+    working: 'Use mid-values 5, 15, 25, 35: (5×4 + 15×7 + 25×9 + 35×5) ÷ 25 = 525 ÷ 25 = 21.0',
+    vary: {
+      make: rand => {
+        const freqs = [rand(1, 9), rand(2, 12), rand(2, 12), rand(1, 9)];
+        const mids = [5, 15, 25, 35];
+        const total = sum(freqs.map((f, i) => f * mids[i]));
+        const mean = total / sum(freqs);
+        return {
+          question: `Marks (grouped): 0 < x ≤ 10: ${freqs[0]} students, 10 < x ≤ 20: ${freqs[1]}, 20 < x ≤ 30: ${freqs[2]}, 30 < x ≤ 40: ${freqs[3]}. Estimate the mean mark, correct to 3 significant figures.`,
+          answer: sf3(mean),
+          working: `Use mid-values 5, 15, 25, 35: (${freqs.map((f, i) => `${mids[i]}×${f}`).join(' + ')}) ÷ ${sum(freqs)} = ${total} ÷ ${sum(freqs)} = ${sf3(mean)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-06', difficulty: 'medium',
+    question: 'The mean of 5 numbers is 12. A sixth number, 18, is added. Find the new mean.',
+    answer: '13',
+    working: 'Old total = 5 × 12 = 60 → new total = 60 + 18 = 78 → 78 ÷ 6 = 13',
+    vary: {
+      make: rand => {
+        let n, m, M, v;
+        do {
+          [n, m] = [rand(3, 9), rand(5, 30)];
+          M = m + rand(-3, 3);
+          v = M * (n + 1) - n * m;
+        } while (v <= 0 || M === m);
+        return {
+          question: `The mean of ${n} numbers is ${m}. ${n === 3 ? 'A fourth' : `Another`} number, ${v}, is added. Find the new mean.`,
+          answer: String(M),
+          working: `Old total = ${n} × ${m} = ${n * m} → new total = ${n * m} + ${v} = ${n * m + v} → ${n * m + v} ÷ ${n + 1} = ${M}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-07', difficulty: 'medium',
+    question: 'The mean of five numbers is 10. Four of them are 7, 12, 9 and 15. Find the fifth number.',
+    answer: '7',
+    working: 'Total = 5 × 10 = 50 → 50 − (7 + 12 + 9 + 15) = 50 − 43 = 7',
+    vary: {
+      make: rand => {
+        let m, known, missing;
+        do {
+          m = rand(6, 25);
+          known = Array.from({ length: 4 }, () => m + rand(-6, 6));
+          missing = 5 * m - sum(known);
+        } while (missing <= 0);
+        return {
+          question: `The mean of five numbers is ${m}. Four of them are ${known.slice(0, 3).join(', ')} and ${known[3]}. Find the fifth number.`,
+          answer: String(missing),
+          working: `Total = 5 × ${m} = ${5 * m} → ${5 * m} − (${known.join(' + ')}) = ${5 * m} − ${sum(known)} = ${missing}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-08', difficulty: 'hard',
+    question: 'Find the lower quartile, upper quartile and interquartile range of: 3, 7, 8, 12, 15, 18, 20, 21, 25, 27, 30.',
+    answer: 'Q1 = 8, Q3 = 25, IQR = 17',
+    working: '11 values in order. Median = 6th (18). Q1 = middle of the lower 5 = 8. Q3 = middle of the upper 5 = 25 → IQR = 25 − 8 = 17',
+    vary: {
+      make: rand => {
+        const n = pick(rand, [7, 11]);
+        const list = shuffle(rand, range(40)).slice(0, n).sort((x, y) => x - y);
+        const half = (n - 1) / 2;
+        const q1 = list[(half - 1) / 2];
+        const q3 = list[half + 1 + (half - 1) / 2];
+        return {
+          question: `Find the lower quartile, upper quartile and interquartile range of: ${list.join(', ')}.`,
+          answer: `Q1 = ${q1}, Q3 = ${q3}, IQR = ${q3 - q1}`,
+          working: `${n} values in order. Median = ${half + 1}th (${list[half]}). Q1 = middle of the lower ${half} = ${q1}. Q3 = middle of the upper ${half} = ${q3} → IQR = ${q3} − ${q1} = ${q3 - q1}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-09', difficulty: 'hard',
+    question: 'Find the standard deviation of 2, 4, 4, 5, 10, correct to 3 significant figures.',
+    answer: '2.68',
+    working: 'Mean = 25 ÷ 5 = 5. Σx² = 4 + 16 + 16 + 25 + 100 = 161 → √(161/5 − 5²) = √7.2 = 2.68',
+    vary: {
+      make: rand => {
+        const list = Array.from({ length: 5 }, () => rand(1, 15)).sort((x, y) => x - y);
+        const mean = sum(list) / 5;
+        const sumSquares = sum(list.map(v => v * v));
+        const variance = sumSquares / 5 - mean * mean;
+        return {
+          question: `Find the standard deviation of ${list.join(', ')}, correct to 3 significant figures.`,
+          answer: variance === 0 ? '0' : sf3(Math.sqrt(variance)),
+          working: `Mean = ${sum(list)} ÷ 5 = ${mean}. Σx² = ${sumSquares} → √(${sumSquares}/5 − ${mean}²) = √${Number(variance.toFixed(4))} = ${variance === 0 ? '0' : sf3(Math.sqrt(variance))}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-10', difficulty: 'medium',
+    question: 'A set of data has mean 20 and standard deviation 4. Every value is increased by 5. Find the new mean and standard deviation.',
+    answer: 'Mean 25, standard deviation 4',
+    working: 'Adding a constant shifts every value (and the mean) but does not change the spread',
+    vary: {
+      make: rand => {
+        const mean = rand(10, 60);
+        const sd = rand(2, 9);
+        if (rand(0, 1) === 1) {
+          const c = rand(2, 15);
+          return {
+            question: `A set of data has mean ${mean} and standard deviation ${sd}. Every value is increased by ${c}. Find the new mean and standard deviation.`,
+            answer: `Mean ${mean + c}, standard deviation ${sd}`,
+            working: 'Adding a constant shifts every value (and the mean) but does not change the spread',
+          };
+        }
+        const k = rand(2, 5);
+        return {
+          question: `A set of data has mean ${mean} and standard deviation ${sd}. Every value is multiplied by ${k}. Find the new mean and standard deviation.`,
+          answer: `Mean ${mean * k}, standard deviation ${sd * k}`,
+          working: `Multiplying by ${k} multiplies the mean AND the spread by ${k}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's1-11', difficulty: 'medium',
+    question: 'Class A: mean 62, standard deviation 15. Class B: mean 68, standard deviation 6. Compare the two classes.',
+    answer: 'Class B did better on average (higher mean). Class B was also more consistent (smaller standard deviation).',
+    vary: {
+      make: rand => {
+        const [mA, mB] = shuffle(rand, range(40).map(v => v + 45)).slice(0, 2);
+        const [sA, sB] = shuffle(rand, range(16).map(v => v + 3)).slice(0, 2);
+        const better = mA > mB ? 'A' : 'B';
+        const steadier = sA < sB ? 'A' : 'B';
+        return {
+          question: `Class A: mean ${mA}, standard deviation ${sA}. Class B: mean ${mB}, standard deviation ${sB}. Compare the two classes.`,
+          answer: `Class ${better} did better on average (higher mean). Class ${steadier} was ${steadier === better ? 'also ' : ''}more consistent (smaller standard deviation).`,
+          working: '',
+        };
+      },
+    },
+  },
+  {
+    id: 's1-12', difficulty: 'easy',
+    question: 'When is the median a better average to use than the mean?',
+    answer: 'When the data has extreme values (outliers), e.g. salaries or house prices. A few very large or small values pull the mean, but hardly change the median.',
+  },
+  {
+    id: 's1-13', difficulty: 'medium',
+    question: 'How do you find the median and interquartile range from a cumulative frequency curve with total frequency n?',
+    answer: 'Read across from n/2 to the curve and down to get the median.\nRead from n/4 (lower quartile) and 3n/4 (upper quartile) in the same way.\nIQR = upper quartile − lower quartile.',
+  },
+  {
+    id: 's1-14', difficulty: 'easy',
+    question: 'Which five values are shown in a box-and-whisker plot?',
+    answer: 'Minimum, lower quartile (Q1), median, upper quartile (Q3) and maximum.',
+  },
+]);
+
+// ---------- O Level Mathematics 4052 — S2 Probability ----------
+
+// A bag of coloured balls.
+function bag(rand) {
+  const red = rand(2, 8);
+  const blue = rand(2, 8);
+  const green = rand(1, 6);
+  return { red, blue, green, total: red + blue + green };
+}
+
+function bagText({ red, blue, green }) {
+  return `A bag has ${red} red, ${blue} blue and ${green} green balls.`;
+}
+
+// 0.18 → "0.18" (hundredths, no floating-point slips)
+function hundredths(n) {
+  return String(Number((n / 100).toFixed(2)));
+}
+
+const oMathS2 = deck('S2 Probability', [
+  {
+    id: 's2-01', difficulty: 'easy',
+    question: 'A bag has 5 red, 3 blue and 2 green balls. One ball is taken at random. Find P(red).',
+    answer: '1/2',
+    working: '5 red out of 10 balls → 5/10 = 1/2',
+    vary: {
+      make: rand => {
+        const b = bag(rand);
+        const colour = pick(rand, ['red', 'blue', 'green']);
+        return {
+          question: `${bagText(b)} One ball is taken at random. Find P(${colour}).`,
+          answer: fraction(b[colour], b.total),
+          working: `${b[colour]} ${colour} out of ${b.total} balls → ${b[colour]}/${b.total}${fraction(b[colour], b.total) === `${b[colour]}/${b.total}` ? '' : ` = ${fraction(b[colour], b.total)}`}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-02', difficulty: 'easy',
+    question: 'The probability that it rains tomorrow is 0.35. Find the probability that it does not rain.',
+    answer: '0.65',
+    working: 'P(not A) = 1 − P(A) = 1 − 0.35 = 0.65',
+    vary: {
+      make: rand => {
+        const p = rand(5, 95);
+        return {
+          question: `The probability that it rains tomorrow is ${hundredths(p)}. Find the probability that it does not rain.`,
+          answer: hundredths(100 - p),
+          working: `P(not A) = 1 − P(A) = 1 − ${hundredths(p)} = ${hundredths(100 - p)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-03', difficulty: 'medium',
+    question: 'Two fair dice are rolled. Find the probability that the total is 8.',
+    answer: '5/36',
+    working: '(2,6), (3,5), (4,4), (5,3), (6,2) → 5 out of 36 outcomes',
+    vary: {
+      make: rand => {
+        const target = rand(2, 12);
+        const ways = [];
+        for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) if (a + b === target) ways.push(`(${a},${b})`);
+        return {
+          question: `Two fair dice are rolled. Find the probability that the total is ${target}.`,
+          answer: fraction(ways.length, 36),
+          working: `${ways.join(', ')} → ${ways.length} out of 36 outcomes${fraction(ways.length, 36) === `${ways.length}/36` ? '' : ` = ${fraction(ways.length, 36)}`}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-04', difficulty: 'medium',
+    question: 'A bag has 4 red and 6 blue balls. A ball is taken, replaced, and a second ball is taken. Find P(both red).',
+    answer: '4/25',
+    working: '4/10 × 4/10 = 16/100 = 4/25 (with replacement, the second draw is the same)',
+    vary: {
+      make: rand => {
+        const [r, b] = [rand(2, 9), rand(2, 9)];
+        const n = r + b;
+        return {
+          question: `A bag has ${r} red and ${b} blue balls. A ball is taken, replaced, and a second ball is taken. Find P(both red).`,
+          answer: fraction(r * r, n * n),
+          working: `${r}/${n} × ${r}/${n} = ${r * r}/${n * n}${fraction(r * r, n * n) === `${r * r}/${n * n}` ? '' : ` = ${fraction(r * r, n * n)}`} (with replacement, the second draw is the same)`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-05', difficulty: 'hard',
+    question: 'A bag has 4 red and 6 blue balls. Two balls are taken without replacement. Find P(both red).',
+    answer: '2/15',
+    working: '4/10 × 3/9 = 12/90 = 2/15 (one fewer red, and one fewer ball, for the second draw)',
+    vary: {
+      make: rand => {
+        const [r, b] = [rand(2, 9), rand(2, 9)];
+        const n = r + b;
+        return {
+          question: `A bag has ${r} red and ${b} blue balls. Two balls are taken without replacement. Find P(both red).`,
+          answer: fraction(r * (r - 1), n * (n - 1)),
+          working: `${r}/${n} × ${r - 1}/${n - 1} = ${r * (r - 1)}/${n * (n - 1)} = ${fraction(r * (r - 1), n * (n - 1))} (one fewer red, and one fewer ball, for the second draw)`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-06', difficulty: 'hard',
+    question: 'A bag has 4 red and 6 blue balls. Two balls are taken without replacement. Find P(one of each colour).',
+    answer: '8/15',
+    working: 'P(RB) + P(BR) = 4/10 × 6/9 + 6/10 × 4/9 = 48/90 = 8/15',
+    vary: {
+      make: rand => {
+        const [r, b] = [rand(2, 9), rand(2, 9)];
+        const n = r + b;
+        return {
+          question: `A bag has ${r} red and ${b} blue balls. Two balls are taken without replacement. Find P(one of each colour).`,
+          answer: fraction(2 * r * b, n * (n - 1)),
+          working: `P(RB) + P(BR) = ${r}/${n} × ${b}/${n - 1} + ${b}/${n} × ${r}/${n - 1} = ${2 * r * b}/${n * (n - 1)} = ${fraction(2 * r * b, n * (n - 1))}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-07', difficulty: 'hard',
+    question: 'A fair die is rolled twice. Find the probability of getting at least one six.',
+    answer: '11/36',
+    working: 'P(at least one six) = 1 − P(no sixes) = 1 − (5/6)² = 1 − 25/36 = 11/36',
+    vary: {
+      make: rand => {
+        const rolls = rand(2, 3);
+        const none = 5 ** rolls;
+        const all = 6 ** rolls;
+        const word = rolls === 2 ? 'twice' : 'three times';
+        return {
+          question: `A fair die is rolled ${word}. Find the probability of getting at least one six.`,
+          answer: fraction(all - none, all),
+          working: `P(at least one six) = 1 − P(no sixes) = 1 − (5/6)${rolls === 2 ? '²' : '³'} = 1 − ${none}/${all} = ${fraction(all - none, all)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-08', difficulty: 'medium',
+    question: 'A and B are independent events. P(A) = 0.3 and P(B) = 0.6. Find P(A and B) and P(neither A nor B).',
+    answer: 'P(A and B) = 0.18, P(neither) = 0.28',
+    working: 'Independent → multiply: 0.3 × 0.6 = 0.18; neither: 0.7 × 0.4 = 0.28',
+    vary: {
+      make: rand => {
+        const [a, b] = [rand(1, 9), rand(1, 9)]; // in tenths
+        return {
+          question: `A and B are independent events. P(A) = ${a / 10} and P(B) = ${b / 10}. Find P(A and B) and P(neither A nor B).`,
+          answer: `P(A and B) = ${hundredths(a * b)}, P(neither) = ${hundredths((10 - a) * (10 - b))}`,
+          working: `Independent → multiply: ${a / 10} × ${b / 10} = ${hundredths(a * b)}; neither: ${(10 - a) / 10} × ${(10 - b) / 10} = ${hundredths((10 - a) * (10 - b))}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-09', difficulty: 'easy',
+    question: 'A and B are mutually exclusive. P(A) = 0.25 and P(B) = 0.4. Find P(A or B).',
+    answer: '0.65',
+    working: 'Mutually exclusive → add: 0.25 + 0.4 = 0.65',
+    vary: {
+      make: rand => {
+        const a = rand(5, 60);
+        const b = rand(5, 95 - a);
+        return {
+          question: `A and B are mutually exclusive. P(A) = ${hundredths(a)} and P(B) = ${hundredths(b)}. Find P(A or B).`,
+          answer: hundredths(a + b),
+          working: `Mutually exclusive → add: ${hundredths(a)} + ${hundredths(b)} = ${hundredths(a + b)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-10', difficulty: 'easy',
+    question: 'The probability that a light bulb is faulty is 3/50. How many faulty bulbs would you expect in a box of 400?',
+    answer: '24',
+    working: 'Expected number = probability × number of trials = 3/50 × 400 = 24',
+    vary: {
+      make: rand => {
+        const den = pick(rand, [20, 25, 40, 50, 100]);
+        const top = rand(1, 9);
+        const n = den * rand(2, 12);
+        return {
+          question: `The probability that a light bulb is faulty is ${fraction(top, den)}. How many faulty bulbs would you expect in a box of ${withCommas(n)}?`,
+          answer: String((top * n) / den),
+          working: `Expected number = probability × number of trials = ${fraction(top, den)} × ${withCommas(n)} = ${(top * n) / den}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-11', difficulty: 'medium',
+    question: 'Cards numbered 1 to 20 are shuffled and one is picked. Find the probability that it is a prime number.',
+    answer: '2/5',
+    working: 'Primes: 2, 3, 5, 7, 11, 13, 17, 19 → 8 out of 20 = 2/5',
+    vary: {
+      make: rand => {
+        const n = pick(rand, [10, 12, 15, 20, 25, 30]);
+        const [label, test] = pick(rand, [
+          ['a prime number', isPrime],
+          ['a multiple of 3', v => v % 3 === 0],
+          ['a multiple of 4', v => v % 4 === 0],
+          ['a square number', v => Number.isInteger(Math.sqrt(v))],
+          ['an even number', v => v % 2 === 0],
+        ]);
+        const hits = range(n).filter(test);
+        return {
+          question: `Cards numbered 1 to ${n} are shuffled and one is picked. Find the probability that it is ${label}.`,
+          answer: fraction(hits.length, n),
+          working: `${hits.join(', ')} → ${hits.length} out of ${n}${fraction(hits.length, n) === `${hits.length}/${n}` ? '' : ` = ${fraction(hits.length, n)}`}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-12', difficulty: 'medium',
+    question: 'A card is drawn from a standard pack of 52. Find P(king or heart).',
+    answer: '4/13',
+    working: '13 hearts + 3 other kings = 16 cards (the king of hearts is counted once) → 16/52 = 4/13',
+    vary: {
+      make: rand => {
+        const [event, count, why] = pick(rand, [
+          ['king or heart', 16, '13 hearts + 3 other kings (the king of hearts is counted once)'],
+          ['red card', 26, 'hearts and diamonds: 13 + 13'],
+          ['picture card (J, Q or K)', 12, '3 picture cards in each of 4 suits'],
+          ['red king', 2, 'king of hearts and king of diamonds'],
+          ['ace or spade', 16, '13 spades + 3 other aces (the ace of spades is counted once)'],
+          ['card that is not a heart', 39, '52 − 13 hearts'],
+          ['number card from 2 to 10', 36, '9 number cards in each of 4 suits'],
+        ]);
+        return {
+          question: `A card is drawn from a standard pack of 52. Find P(${event}).`,
+          answer: fraction(count, 52),
+          working: `${why} = ${count} cards → ${count}/52 = ${fraction(count, 52)}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-13', difficulty: 'medium',
+    question: 'A coin is flipped 200 times and lands on heads 112 times. Estimate the probability of heads.',
+    answer: '0.56',
+    working: 'Relative frequency = 112 ÷ 200 = 0.56',
+    vary: {
+      make: rand => {
+        const n = pick(rand, [50, 100, 200, 250, 400, 500]);
+        const heads = rand(Math.round(n * 0.35), Math.round(n * 0.65));
+        const rf = Number((heads / n).toFixed(4));
+        return {
+          question: `A coin is flipped ${n} times and lands on heads ${heads} times. Estimate the probability of heads.`,
+          answer: String(rf),
+          working: `Relative frequency = ${heads} ÷ ${n} = ${rf}`,
+        };
+      },
+    },
+  },
+  {
+    id: 's2-14', difficulty: 'easy',
+    question: 'What is the difference between mutually exclusive events and independent events?',
+    answer: 'Mutually exclusive: they cannot both happen → P(A or B) = P(A) + P(B).\nIndependent: one happening does not change the chance of the other → P(A and B) = P(A) × P(B).',
   },
 ]);
 
@@ -3183,4 +5313,13 @@ export const decks = {
   'o-math-n7': oMathN7,
   'o-math-n8': oMathN8,
   'o-math-n9': oMathN9,
+  'o-math-g1': oMathG1,
+  'o-math-g2': oMathG2,
+  'o-math-g3': oMathG3,
+  'o-math-g4': oMathG4,
+  'o-math-g5': oMathG5,
+  'o-math-g6': oMathG6,
+  'o-math-g7': oMathG7,
+  'o-math-s1': oMathS1,
+  'o-math-s2': oMathS2,
 };
