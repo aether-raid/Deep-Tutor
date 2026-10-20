@@ -348,7 +348,7 @@ const aMath = {
   ],
 };
 
-// ★ Section I (Topics 1–4) has flashcard decks (data/decks/a-physics-1.js … a-physics-4.js).
+// ★ Section I (Topics 1–4) has flashcard decks (data/decks/a-h2-physics.js).
 const aPhysics = {
   id: 'a-physics', name: 'Physics', tag: 'H2', syllabus: 'A Level H2 Physics 9478 (revised; first examined 2026)',
   topics: [
