@@ -77,15 +77,20 @@ const oAddMath = {
   id: 'o-amath', name: 'Additional Mathematics', short: 'AM', syllabus: 'O Level Additional Mathematics 4049 (2026)',
   topics: [
     { code: 'A', name: 'Algebra', subtopics: subs([
-      ['A1', 'Quadratic functions'], ['A2', 'Equations and inequalities'], ['A3', 'Surds'],
-      ['A4', 'Polynomials and partial fractions'], ['A5', 'Binomial expansions'], ['A6', 'Exponential and logarithmic functions'],
+      ['A1', 'Quadratic functions', { deck: 'o-amath-a1' }],
+      ['A2', 'Equations and inequalities', { deck: 'o-amath-a2' }],
+      ['A3', 'Surds', { deck: 'o-amath-a3' }],
+      ['A4', 'Polynomials and partial fractions', { deck: 'o-amath-a4' }],
+      ['A5', 'Binomial expansions', { deck: 'o-amath-a5' }],
+      ['A6', 'Exponential and logarithmic functions', { deck: 'o-amath-a6' }],
     ]) },
     { code: 'G', name: 'Geometry and Trigonometry', subtopics: subs([
-      ['G1', 'Trigonometric functions, identities and equations'], ['G2', 'Coordinate geometry in two dimensions'],
-      ['G3', 'Proofs in plane geometry'],
+      ['G1', 'Trigonometric functions, identities and equations', { deck: 'o-amath-g1' }],
+      ['G2', 'Coordinate geometry in two dimensions', { deck: 'o-amath-g2' }],
+      ['G3', 'Proofs in plane geometry', { deck: 'o-amath-g3' }],
     ]) },
     { code: 'C', name: 'Calculus', subtopics: subs([
-      ['C1', 'Differentiation and integration'],
+      ['C1', 'Differentiation and integration', { deck: 'o-amath-c1' }],
     ]) },
   ],
 };
