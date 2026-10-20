@@ -8,6 +8,7 @@
 //   decks/a-h2-physics.js   A Level H2 Physics — Section I Foundations of Physics (Topics 1–4)
 //   decks/a-h2-math-1-2.js  A Level H2 Mathematics — 1 Functions and graphs, 2 Sequences and series
 //   decks/a-h2-computing-1.js  A Level H2 Computing — Module 1 Programming Fundamentals
+//   decks/o-level-math.js   O Level Mathematics 4052 — N1–N9, G1–G7, S1–S2
 //
 // Each deck is linked to a syllabus sub-topic in data/syllabus.js through its key
 // (for example deck: 'ib-cs-a1-1'). A sub-topic with a deck shows GREEN (ready);
@@ -21,6 +22,7 @@ import { mathAA1Decks } from './decks/ib-math-aa-1.js';
 import { h2PhysicsDecks } from './decks/a-h2-physics.js';
 import { h2MathDecks } from './decks/a-h2-math-1-2.js';
 import { h2ComputingDecks } from './decks/a-h2-computing-1.js';
+import { oLevelMathDecks } from './decks/o-level-math.js';
 
 // Seconds allowed per card, by difficulty.
 export const TIME_LIMITS = {
@@ -36,4 +38,5 @@ export const decks = {
   ...h2MathDecks,
   ...h2PhysicsDecks,
   ...h2ComputingDecks,
+  ...oLevelMathDecks,
 };

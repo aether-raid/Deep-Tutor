@@ -57,17 +57,23 @@ const oMath = {
   id: 'o-math', name: 'Core Mathematics', short: 'EM', syllabus: 'O Level Mathematics 4052 (2026)',
   topics: [
     { code: 'N', name: 'Number and Algebra', subtopics: subs([
-      ['N1', 'Numbers and their operations'], ['N2', 'Ratio and proportion'], ['N3', 'Percentage'],
-      ['N4', 'Rate and speed'], ['N5', 'Algebraic expressions and formulae'], ['N6', 'Functions and graphs'],
-      ['N7', 'Equations and inequalities'], ['N8', 'Set language and notation'], ['N9', 'Matrices'],
+      ['N1', 'Numbers and their operations', { deck: 'o-math-n1' }], ['N2', 'Ratio and proportion', { deck: 'o-math-n2' }], ['N3', 'Percentage', { deck: 'o-math-n3' }],
+      ['N4', 'Rate and speed', { deck: 'o-math-n4' }], ['N5', 'Algebraic expressions and formulae', { deck: 'o-math-n5' }],
+      ['N6', 'Functions and graphs', { deck: 'o-math-n6' }], ['N7', 'Equations and inequalities', { deck: 'o-math-n7' }],
+      ['N8', 'Set language and notation', { deck: 'o-math-n8' }], ['N9', 'Matrices', { deck: 'o-math-n9' }],
     ]) },
     { code: 'G', name: 'Geometry and Measurement', subtopics: subs([
-      ['G1', 'Angles, triangles and polygons'], ['G2', 'Congruence and similarity'], ['G3', 'Properties of circles'],
-      ['G4', "Pythagoras' theorem and trigonometry"], ['G5', 'Mensuration'], ['G6', 'Coordinate geometry'],
-      ['G7', 'Vectors in two dimensions'],
+      ['G1', 'Angles, triangles and polygons', { deck: 'o-math-g1' }],
+      ['G2', 'Congruence and similarity', { deck: 'o-math-g2' }],
+      ['G3', 'Properties of circles', { deck: 'o-math-g3' }],
+      ['G4', "Pythagoras' theorem and trigonometry", { deck: 'o-math-g4' }],
+      ['G5', 'Mensuration', { deck: 'o-math-g5' }],
+      ['G6', 'Coordinate geometry', { deck: 'o-math-g6' }],
+      ['G7', 'Vectors in two dimensions', { deck: 'o-math-g7' }],
     ]) },
     { code: 'S', name: 'Statistics and Probability', subtopics: subs([
-      ['S1', 'Data handling and analysis'], ['S2', 'Probability'],
+      ['S1', 'Data handling and analysis', { deck: 'o-math-s1' }],
+      ['S2', 'Probability', { deck: 'o-math-s2' }],
     ]) },
   ],
 };
