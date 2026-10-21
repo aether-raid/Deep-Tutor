@@ -618,7 +618,7 @@ function answerText(item, index) {
 }
 
 .tag-wrong {
-  background: var(--color-primary);
+  background: var(--color-danger);
   border-color: var(--color-primary);
   color: var(--color-bg);
 }

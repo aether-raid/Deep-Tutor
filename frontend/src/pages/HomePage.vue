@@ -35,8 +35,7 @@ const FEATURES = [
   <section class="page">
     <!-- Hero: project name and one-line purpose -->
     <header class="hero">
-      <img class="logo" src="../../assets/Untitled_design-removebg-preview.png" alt="Project logo" />
-      <p class="purpose">{{ PURPOSE }}</p>
+      <img src="../../assets/Untitled_design-removebg-preview.png" style="width: 30%; height: auto;" /> 
     </header>
 
     <!-- Feature cards: v-for makes one card per item in FEATURES.

@@ -901,7 +901,8 @@ function ringOffset(percent) {
 */
 .flashcards-page {
   width: min(100%, 940px);
-  margin: 0 auto;
+  margin-left: 0;
+  margin-right: auto;
   display: grid;
   gap: var(--space-5);
   font-family: var(--font-body);
@@ -916,7 +917,7 @@ function ringOffset(percent) {
 .heading-row h1, .results-view h2, .empty-state h2, .picker-head h2 {
   margin: 0;
   font-family: var(--font-heading);
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 .heading-row h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); letter-spacing: -0.02em; }
 .eyebrow { margin: 0 0 var(--space-1); color: var(--color-success); font-size: 0.76rem; letter-spacing: 0.14em; font-weight: 800; }
@@ -1027,7 +1028,7 @@ span.crumb { cursor: default; }
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius);
   background: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-text);
   font-size: 0.85rem;
 }
 .hl-badge {
