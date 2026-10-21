@@ -608,12 +608,12 @@ function selectLevel(id) {
 
 .badge-moderate {
   background: var(--color-warning);
-  color: var(--color-bg);
+  color: var(--color-bg)
 }
 
 .badge-strong {
   background: var(--color-success);
-  color: var(--color-bg);
+  color: var(--color-bg)
 }
 
 .badge-none {
