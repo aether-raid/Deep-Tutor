@@ -901,7 +901,8 @@ function ringOffset(percent) {
 */
 .flashcards-page {
   width: min(100%, 940px);
-  margin: 0 auto;
+  margin-left: 0;
+  margin-right: auto;
   display: grid;
   gap: var(--space-5);
   font-family: var(--font-body);
