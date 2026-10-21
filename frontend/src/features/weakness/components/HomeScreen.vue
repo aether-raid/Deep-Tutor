@@ -338,7 +338,7 @@ function selectLevel(id) {
   height: 24px;
   border-radius: 50%;
   background: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-text);
   font-size: 0.8rem;
 }
 

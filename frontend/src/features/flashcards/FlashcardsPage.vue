@@ -1027,7 +1027,7 @@ span.crumb { cursor: default; }
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius);
   background: var(--color-primary);
-  color: var(--color-bg);
+  color: var(--color-text);
   font-size: 0.85rem;
 }
 .hl-badge {
