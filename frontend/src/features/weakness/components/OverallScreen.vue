@@ -345,7 +345,7 @@ const notTriedCount = computed(() => selected.value?.topics.filter((t) => t.perc
 
 .bar {
   width: 100%;
-  height: 6px;
+  height: 10px;
   border-radius: 999px;
   background: var(--color-primary);
   overflow: hidden;
