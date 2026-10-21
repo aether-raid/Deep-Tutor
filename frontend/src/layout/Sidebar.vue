@@ -6,6 +6,7 @@ import { PROJECT_NAME, NAV_ITEMS } from '../config.js';
   <aside class="sidebar">
     <header class="sidebar-header">
       <h1 class="project-name">{{ PROJECT_NAME }}</h1>
+      <img class="logo" src="../../assets/swallow.png" alt="Project logo" />
     </header>
 
     <nav class="nav">
@@ -36,16 +37,32 @@ import { PROJECT_NAME, NAV_ITEMS } from '../config.js';
   border-right: 1px solid var(--color-border);
 }
 
+/* Title with the logo right beside it, on one line */
 .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-2);
   padding: var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
 
+/* Logo (511 x 511): shrunk to sit beside the title inside the 240px sidebar */
+.logo {
+  display: block;
+  flex-shrink: 0; /* don't let a long title squash the logo */
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
 .project-name {
   margin: 0;
+  min-width: 0; /* lets a long name wrap instead of pushing the logo out */
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 1.5rem;
   color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
 .nav {
@@ -89,6 +106,12 @@ import { PROJECT_NAME, NAV_ITEMS } from '../config.js';
   .nav {
     flex-direction: row;
     flex-wrap: wrap;
+  }
+
+  /* On phones the sidebar becomes a top bar, so keep the logo small */
+  .logo {
+    width: 40px;
+    height: 40px;
   }
 }
 </style>

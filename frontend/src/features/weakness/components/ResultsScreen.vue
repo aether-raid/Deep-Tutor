@@ -5,6 +5,7 @@ import { ref, computed } from 'vue';
 import { analyseQuiz, CONFIDENCE_LABELS, DIFFICULTY_LABELS, SKILL_INFO, TOPIC_STATUS, formatDuration } from '../analysis.js';
 import { findLevel, findStream } from '../data/subjects.js';
 import AiSuggestions from './AiSuggestions.vue';
+import { buildAskLink } from '../askAiLink.js';
 
 const props = defineProps({
   level: { type: String, required: true },
@@ -61,6 +62,18 @@ const aiContext = {
   streamName,
   subjectName: props.subject.displayName,
 };
+
+// The "Ask AI" button opens the Chatbot page in a new tab for that question.
+// The link says which chatbot to use and carries the question, both answers,
+// the student's level and stream (see askAiLink.js).
+function askAiLink(item) {
+  return buildAskLink(item, {
+    ...aiContext,
+    subjectId: props.subject.id,
+    // Time on every question, so the chatbot can compare this one with the rest.
+    allSeconds: analysis.value.items.map((i) => i.seconds),
+  });
+}
 
 // AI explanations per question number, filled in by AiSuggestions.
 const aiNotes = ref({});
@@ -230,9 +243,21 @@ function answerText(item, index) {
             </p>
           </div>
 
-          <div v-if="item.explanation" class="solution">
-            <p class="section-label">Worked solution</p>
-            <p>{{ item.explanation }}</p>
+          <div class="solution">
+            <p v-if="item.explanation" class="section-label">Worked solution</p>
+            <div class="solution-row">
+              <p class="solution-text">{{ item.explanation }}</p>
+              <!-- Opens the Chatbot page in a new tab, ready to explain this question -->
+              <a
+                class="btn-ask"
+                :href="askAiLink(item)"
+                target="_blank"
+                rel="noopener"
+                :aria-label="`Ask AI about question ${item.number} (opens in a new tab)`"
+              >
+                ✦ Ask AI
+              </a>
+            </div>
           </div>
         </article>
       </section>
@@ -638,6 +663,36 @@ function answerText(item, index) {
 .solution {
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+/* Explanation on the left, "Ask AI" button on the right (stacks on small screens) */
+.solution-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.solution-text {
+  flex: 1 1 240px;
+}
+
+.btn-ask {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  text-decoration: none;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.btn-ask:hover {
+  background: var(--color-primary-soft);
 }
 
 /* ---------- Actions ---------- */

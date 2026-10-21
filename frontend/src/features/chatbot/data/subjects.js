@@ -7,4 +7,5 @@ export const subjects = [
   { id: 'physics', name: 'Physics', lastUsed: '-' },
   { id: 'chemistry', name: 'Chemistry', lastUsed: '-' },
   { id: 'biology', name: 'Biology', lastUsed: '-' },
+  { id: 'others', name: 'Others', lastUsed: '-' },
 ];

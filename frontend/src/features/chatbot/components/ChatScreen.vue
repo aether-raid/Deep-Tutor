@@ -24,8 +24,11 @@
     <!-- Only this middle part scrolls, so the top bar and text box always stay visible -->
     <div ref="messagesBox" class="messages">
       <!-- Shown when the chat is empty -->
-      <p v-if="messages.length === 0 && !isThinking" class="empty-message">
+      <p v-if="messages.length === 0 && subject.name != 'Others' && !isThinking" class="empty-message">
         Ask me anything about {{ subject.name }} to get started!
+      </p>
+      <p v-if="messages.length === 0 && subject.name === 'Others' && !isThinking" class="empty-message">
+        Ask me anything to get started!
       </p>
 
       <div
@@ -34,7 +37,8 @@
         class="message-row"
         :class="message.role === 'user' ? 'from-user' : 'from-tutor'"
       >
-        <span class="avatar">{{ message.role === 'user' ? '👤' : '🧠' }}</span>
+        <span v-if="message.role === 'user'" class="avatar">👤</span>
+        <span v-else class="avatar"><img class="avatar-img" :src="swallowUrl" alt="Tutor" /></span>
         <!-- Tutor answers are written in Markdown, so we turn them into HTML.
              renderMarkdown() cleans the HTML with DOMPurify, so it is OK to use v-html. -->
         <div
@@ -48,7 +52,7 @@
 
       <!-- Shown while we wait for the AI to answer -->
       <div v-if="isThinking" class="message-row from-tutor">
-        <span class="avatar">🧠</span>
+        <span class="avatar"><img class="avatar-img" :src="swallowUrl" alt="Tutor" /></span>
         <p class="bubble thinking">Thinking…</p>
       </div>
     </div>
@@ -83,10 +87,13 @@ import { askLLM } from '../../../shared/llm.js';
 import { loadChat, saveChat } from '../chatStorage.js';
 import { marked } from 'marked'; // turns Markdown into HTML
 import DOMPurify from 'dompurify'; // removes anything unsafe from that HTML
+import swallowUrl from '../../../../assets/swallow.png'; // the tutor's avatar picture
 
 // The chosen subject comes from the parent page.
 const props = defineProps({
   subject: { type: Object, required: true },
+  // Optional message to send as soon as the chat opens (e.g. from "Ask AI" on the Weakness page).
+  startMessage: { type: String, default: '' },
 });
 
 // 'back' tells the parent page to go back to the subject menu.
@@ -113,26 +120,89 @@ const isThinking = ref(false);
 const messages = ref(loadChat(props.subject.id));
 
 // When the chat opens, jump to the newest message.
-onMounted(scrollToBottom);
+onMounted(() => {
+  scrollToBottom();
+  // If another page sent a question, ask it straight away.
+  if (props.startMessage) {
+    draft.value = props.startMessage;
+    sendMessage();
+  }
+});
 
 // Instructions for the AI, so it acts like a tutor for this subject.
 function tutorPrompt() {
+  if (props.subject.id === 'others') {
+    return (
+      `You are a friendly tutor for secondary school students. ` +
+      `Explain things simply and step by step. Keep answers short unless asked for detail. ` +
+      `If the question is about a specific subject, mention it in your answer. ` +
+      // Our chat can show Markdown, but not maths formulas (LaTeX).
+      `You may use Markdown: headings, **bold**, *italic*, lists, tables and code blocks. ` +
+      `Never use LaTeX (no \\frac, \\times, \\[ \\] etc.). Write all maths in simple plain text, ` +
+      `e.g. 5 × 4 ÷ 2 = 10, x^2 + 3x = 0, sqrt(2), C(5, 2).`
+    );
+  }else{
   return (
     `You are a friendly ${props.subject.name} tutor for secondary school students. ` +
     `Explain things simply and step by step. Keep answers short unless asked for detail. ` +
     `If the question is not about ${props.subject.name}, gently guide the student back to the subject. ` +
     // Our chat can show Markdown, but not maths formulas (LaTeX).
     `You may use Markdown: headings, **bold**, *italic*, lists, tables and code blocks. ` +
-    `Do not use LaTeX; write maths in plain text, e.g. x^2 + 3x = 0 or sqrt(2).`
+    `Never use LaTeX (no \\frac, \\times, \\[ \\] etc.). Write all maths in simple plain text, ` +
+      `e.g. 5 × 4 ÷ 2 = 10, x^2 + 3x = 0, sqrt(2), C(5, 2).`
   );
+  }
 }
 
 // Turn the tutor's Markdown answer into safe HTML for v-html.
 // marked: Markdown -> HTML ("breaks: true" keeps single line breaks).
 // DOMPurify: strips out anything dangerous, like <script> tags.
 function renderMarkdown(text) {
-  const html = marked.parse(text, { breaks: true });
+  const html = marked.parse(latexToPlain(text), { breaks: true });
   return DOMPurify.sanitize(html);
+}
+
+// The chat cannot show LaTeX, so if the AI still uses it, turn it into simple
+// readable text first, e.g. \frac{5 \times 4}{2} -> (5 × 4)/(2), \binom{5}{2} -> C(5, 2).
+// Code blocks are left exactly as they are.
+const LATEX_SYMBOLS = {
+  times: '×', div: '÷', cdot: '·', pm: '±', mp: '∓',
+  leq: '≤', le: '≤', geq: '≥', ge: '≥', neq: '≠', ne: '≠', approx: '≈',
+  pi: 'π', theta: 'θ', alpha: 'α', beta: 'β', Delta: 'Δ', delta: 'δ', lambda: 'λ', mu: 'μ', Omega: 'Ω',
+  infty: '∞', circ: '°', degree: '°', to: '→', rightarrow: '→', Rightarrow: '⇒', leftarrow: '←',
+  therefore: '∴', quad: ' ', qquad: '  ', ldots: '...', cdots: '...',
+};
+
+function latexToPlain(text) {
+  // Split out code blocks and `inline code` so we never change them.
+  return text
+    .split(/(```[\s\S]*?```|`[^`\n]*`)/)
+    .map((part, index) => (index % 2 === 1 ? part : convertLatex(part)))
+    .join('');
+}
+
+function convertLatex(text) {
+  let out = text
+    .replace(/\$\$|\\\[|\\\]|\\\(|\\\)/g, '') // maths delimiters: $$ \[ \] \( \)
+    .replace(/\\(?:text|mathrm|mathbf|operatorname)\{([^{}]*)\}/g, '$1') // \text{cm} -> cm
+    .replace(/\\left|\\right/g, '') // \left( -> (
+    .replace(/\\[,;:! ]/g, ' '); // LaTeX spacing commands
+
+  // Repeat so nested ones like \frac{\sqrt{2}}{3} are also converted.
+  let before;
+  do {
+    before = out;
+    out = out
+      .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)')
+      .replace(/\\binom\{([^{}]*)\}\{([^{}]*)\}/g, 'C($1, $2)')
+      .replace(/\\sqrt\{([^{}]*)\}/g, '√($1)');
+  } while (out !== before);
+
+  return out
+    .replace(/\\([A-Za-z]+)/g, (match, name) => LATEX_SYMBOLS[name] ?? match) // \times -> ×
+    .replace(/\^\{([^{}]*)\}/g, (_match, p) => (p.length === 1 ? `^${p}` : `^(${p})`)) // ^{5-2} -> ^(5-2)
+    .replace(/_\{([^{}]*)\}/g, '_$1') // T_{3} -> T_3
+    .replace(/\^\s*°/g, '°'); // 30^\circ -> 30°
 }
 
 // Make the text box taller as the student types more lines.
@@ -293,6 +363,13 @@ async function sendMessage() {
   border-radius: 50%;
   background: var(--color-primary-soft);
   font-size: 1.25rem;
+}
+
+/* The swallow picture inside the tutor's round avatar */
+.avatar-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .bubble {

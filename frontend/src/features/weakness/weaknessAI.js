@@ -2,6 +2,10 @@
 // We only talk to the AI through askLLM() from shared/llm.js (no API keys in this file).
 import { askLLM } from '../../shared/llm.js';
 
+// Added to every system prompt: the page cannot show LaTeX, so maths must be plain text.
+const PLAIN_MATHS =
+  'Never use LaTeX. Write all maths in simple plain text, e.g. 5 × 4 ÷ 2 = 10, x^2, sqrt(2), 3/4. ';
+
 // Asks the AI for 10 MCQs when there is no mock bank for a subject.
 // Returns an array of questions, or null if the AI is unavailable or the reply is unusable.
 // Kept short on purpose: askLLM only allows a short reply, so we don't ask for explanations here.
@@ -9,6 +13,7 @@ import { askLLM } from '../../shared/llm.js';
 export async function generateQuestions({ levelName, streamName, subjectName, focusTopic = null }) {
   const systemPrompt =
     'You write multiple-choice quiz questions for Singapore students, following the MOE syllabus. ' +
+    PLAIN_MATHS +
     'Reply with JSON only. No extra text.';
 
   const count = focusTopic ? 5 : 10;
@@ -54,6 +59,7 @@ export async function getSuggestions(analysis, { levelName, streamName, subjectN
     'Explain mistakes simply, at the level of the student. ' +
     'For each mistake say whether it is an Understanding problem (does not know the idea) ' +
     'or an Application problem (knows the idea but cannot use it in a problem). ' +
+    PLAIN_MATHS +
     'Reply with JSON only. No extra text.';
 
   const userPrompt =

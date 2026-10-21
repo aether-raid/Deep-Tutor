@@ -35,7 +35,7 @@ const FEATURES = [
   <section class="page">
     <!-- Hero: project name and one-line purpose -->
     <header class="hero">
-      <h1 class="title">{{ PROJECT_NAME }}</h1>
+      <img class="logo" src="../../assets/Untitled_design-removebg-preview.png" alt="Project logo" />
       <p class="purpose">{{ PURPOSE }}</p>
     </header>
 
@@ -79,6 +79,7 @@ const FEATURES = [
 
   /* The light blue rounded panel that holds the whole page */
   padding: var(--space-6);
+  padding-top: var(--space-3); /* smaller gap between the top border and the logo */
   background: var(--home-panel);
   border: 2px solid var(--home-outline);
   border-radius: 16px;
@@ -87,6 +88,15 @@ const FEATURES = [
 /* Hero: no box of its own any more, it sits directly on the panel */
 .hero {
   padding-bottom: var(--space-4);
+}
+
+/* Logo: about a third of its real size (902 x 256), and never wider than the screen */
+.logo {
+  display: block;
+  width: 320px;
+  max-width: 100%;
+  height: auto;
+  margin-bottom: var(--space-2);
 }
 
 .title {

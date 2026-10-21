@@ -19,6 +19,8 @@
 // look the same (see buildQuiz.js).
 // The banks for each stage live in data/banks/. The four banks below were the first ones;
 // extra questions for them come from the EXTRA exports of the files in data/banks/.
+// data/banks/extra/ adds more questions to every non-language bank, so each topic has
+// about 20 questions (Literature, English and Mother Tongue are not included).
 // Mother Tongue subjects have no bank and fall back to AI-generated questions (see weaknessAI.js).
 
 import * as lowerPrimary from './banks/lowerPrimary.js';
@@ -31,6 +33,7 @@ import * as upperSecondaryG1 from './banks/upperSecondaryG1.js';
 import * as upperSecondaryMathEnglish from './banks/upperSecondaryMathEnglish.js';
 import * as upperSecondarySciences from './banks/upperSecondarySciences.js';
 import * as upperSecondaryHumanities from './banks/upperSecondaryHumanities.js';
+import { EXTRA_QUESTIONS } from './banks/extra/index.js';
 
 const BANK_FILES = [
   lowerPrimary,
@@ -1396,6 +1399,7 @@ const FIRST_BANKS = [
 ];
 
 // The first banks plus their extra questions, followed by every bank from data/banks/.
+// Then each bank also gets its questions from data/banks/extra/ (about 20 per topic in total).
 const BANKS = [
   ...FIRST_BANKS.map((bank) => ({
     ...bank,
@@ -1405,7 +1409,10 @@ const BANKS = [
     ],
   })),
   ...BANK_FILES.flatMap((file) => file.BANKS ?? []),
-];
+].map((bank) => ({
+  ...bank,
+  questions: [...bank.questions, ...(EXTRA_QUESTIONS[bank.id] ?? [])],
+}));
 
 // Finds the mock bank that matches what the student picked, or null if none.
 export function findQuestionBank(levelId, streamId, subjectId, optionId) {
