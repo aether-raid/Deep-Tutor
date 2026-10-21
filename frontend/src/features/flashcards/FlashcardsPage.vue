@@ -916,7 +916,7 @@ function ringOffset(percent) {
 .heading-row h1, .results-view h2, .empty-state h2, .picker-head h2 {
   margin: 0;
   font-family: var(--font-heading);
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 .heading-row h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); letter-spacing: -0.02em; }
 .eyebrow { margin: 0 0 var(--space-1); color: var(--color-success); font-size: 0.76rem; letter-spacing: 0.14em; font-weight: 800; }
