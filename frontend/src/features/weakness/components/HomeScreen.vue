@@ -591,8 +591,7 @@ function selectLevel(id) {
   color: var(--color-text);
 }
 
-/* Strength badges: theme has no red/green, so we use style instead of colour.
-   Weak is the loudest (solid), Strong is the quietest (outline). */
+/* Strength badges*/
 .badge {
   font-size: 0.7rem;
   font-weight: 600;
@@ -602,17 +601,19 @@ function selectLevel(id) {
 }
 
 .badge-weak {
-  background: var(--color-primary);
+  background: var(--color-danger);
   border-color: var(--color-primary);
   color: var(--color-bg);
 }
 
 .badge-moderate {
-  background: var(--color-primary-soft);
+  background: var(--color-warning);
+  color: var(--color-bg);
 }
 
 .badge-strong {
-  background: var(--color-surface);
+  background: var(--color-success);
+  color: var(--color-bg);
 }
 
 .badge-none {
